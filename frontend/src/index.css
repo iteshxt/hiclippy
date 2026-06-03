@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
-
 /* ─── Reset ─────────────────────────────────────────────── */
 *,
 *::before,
@@ -695,6 +693,7 @@ body {
 
 .submit-btn:not(:disabled):hover {
   background: #158b56;
+  color: #fff;
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(27, 158, 98, 0.28);
 }
