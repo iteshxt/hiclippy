@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { UploadCard } from './components/UploadCard';
 import { FetchCard } from './components/FetchCard';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
+const Privacy = React.lazy(() => import('./pages/Privacy'));
+const Terms = React.lazy(() => import('./pages/Terms'));
 
 import {
     Zap as ZapIcon,
@@ -70,57 +70,69 @@ function NatureBg() {
                 style={{ width: '100%', height: '100%', display: 'block' }}
             >
                 {/* Procedural Static Hills */}
-                {props.hills.map((d, i) => (
-                    <path
-                        key={`hill-${i}`}
-                        d={d}
-                        fill={["#f0faf4", "#e2f5e9", "#d4eedd", "#c6e7d1"][i]}
-                        opacity={0.6 + (i * 0.1)}
-                    />
-                ))}
+                {props.hills && props.hills.map((d, i) => {
+                    if (!d) return null;
+                    return (
+                        <path
+                            key={`hill-${i}`}
+                            d={d}
+                            fill={["#f0faf4", "#e2f5e9", "#d4eedd", "#c6e7d1"][i]}
+                            opacity={0.6 + (i * 0.1)}
+                        />
+                    );
+                })}
 
                 {/* 5 Layers of Grass */}
-                {props.grassLayers.map((layer, lIdx) => (
-                    <g key={`layer-${lIdx}`}>
-                        {layer.map((g, i) => (
-                            <motion.path
-                                key={`g-${lIdx}-${i}`}
-                                d={`M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`}
-                                stroke={g.color}
-                                strokeWidth={g.strokeWidth}
-                                strokeLinecap="round"
-                                fill="none"
-                                opacity={g.opacity}
-                                animate={{
-                                    d: [
-                                        `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`,
-                                        `M${g.x},321 Q${g.x + g.skew + 8},${320 - g.h / 2} ${g.x + 4},${320 - g.h}`,
-                                        `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`
-                                    ]
-                                }}
-                                transition={{ duration: g.duration, repeat: Infinity, ease: "easeInOut", delay: g.delay }}
-                            />
-                        ))}
-                    </g>
-                ))}
+                {props.grassLayers && props.grassLayers.map((layer, lIdx) => {
+                    if (!layer) return null;
+                    return (
+                        <g key={`layer-${lIdx}`}>
+                            {layer.map((g, i) => {
+                                if (!g || typeof g.x !== 'number' || typeof g.h !== 'number' || typeof g.skew !== 'number') return null;
+                                return (
+                                    <motion.path
+                                        key={`g-${lIdx}-${i}`}
+                                        d={`M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`}
+                                        stroke={g.color}
+                                        strokeWidth={g.strokeWidth}
+                                        strokeLinecap="round"
+                                        fill="none"
+                                        opacity={g.opacity}
+                                        animate={{
+                                            d: [
+                                                `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`,
+                                                `M${g.x},321 Q${g.x + g.skew + 8},${320 - g.h / 2} ${g.x + 4},${320 - g.h}`,
+                                                `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`
+                                            ]
+                                        }}
+                                        transition={{ duration: g.duration, repeat: Infinity, ease: "easeInOut", delay: g.delay }}
+                                    />
+                                );
+                            })}
+                        </g>
+                    );
+                })}
 
                 {/* Scattered Mixed Flowers */}
-                {props.flowers.map((f, i) => (
-                    <g key={`f-${i}`}>
-                        <path d={`M${f.x},320 Q${f.x + 2},${320 - f.stemH / 2} ${f.x},${320 - f.stemH}`} stroke="#2a6e40" strokeWidth="1.2" fill="none" opacity={0.5} />
-                        <motion.g
-                            animate={{ rotate: [0, 5, -5, 0], x: [0, 2, -2, 0] }}
-                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: f.delay }}
-                            style={{ transformOrigin: `${f.x}px ${320 - f.stemH}px` }}
-                        >
-                            <circle cx={f.x} cy={320 - f.stemH - 4} r="4" fill={f.color} />
-                            <circle cx={f.x - 4} cy={320 - f.stemH} r="4" fill={f.color} />
-                            <circle cx={f.x + 4} cy={320 - f.stemH} r="4" fill={f.color} />
-                            <circle cx={f.x} cy={320 - f.stemH + 4} r="4" fill={f.color} />
-                            <circle cx={f.x} cy={320 - f.stemH} r="3" fill="#f4c430" />
-                        </motion.g>
-                    </g>
-                ))}
+                {props.flowers && props.flowers.map((f, i) => {
+                    if (!f || typeof f.x !== 'number' || typeof f.stemH !== 'number') return null;
+                    return (
+                        <g key={`f-${i}`}>
+                            <path d={`M${f.x},320 Q${f.x + 2},${320 - f.stemH / 2} ${f.x},${320 - f.stemH}`} stroke="#2a6e40" strokeWidth="1.2" fill="none" opacity={0.5} />
+                            <motion.g
+                                animate={{ rotate: [0, 5, -5, 0], x: [0, 2, -2, 0] }}
+                                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: f.delay }}
+                                style={{ transformOrigin: `${f.x}px ${320 - f.stemH}px` }}
+                            >
+                                <circle cx={f.x} cy={320 - f.stemH - 4} r="4" fill={f.color} />
+                                <circle cx={f.x - 4} cy={320 - f.stemH} r="4" fill={f.color} />
+                                <circle cx={f.x + 4} cy={320 - f.stemH} r="4" fill={f.color} />
+                                <circle cx={f.x} cy={320 - f.stemH + 4} r="4" fill={f.color} />
+                                <circle cx={f.x} cy={320 - f.stemH} r="3" fill="#f4c430" />
+                            </motion.g>
+                        </g>
+                    );
+                })}
             </svg>
         </div>
     );
@@ -159,7 +171,7 @@ const fadeUp = {
     show: { opacity: 1, y: 0 },
 };
 
-/* ── Animated Mascot Switcher ───────────────────────────── */
+/* ── Animated Mascot───────────────────────────── */
 function Mascot() {
     return (
         <div className="mascot-wrapper">
@@ -173,8 +185,11 @@ function Mascot() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-
-            />
+                aria-hidden="true"
+                fetchPriority="high"
+            >
+                <track kind="captions" src="" label="Mute" />
+            </motion.video>
         </div>
     );
 }
@@ -257,7 +272,7 @@ export default function App() {
             <NatureBg />
             <DeveloperInfo />
 
-            <div className="page-inner">
+            <main className="page-inner">
                 <div className="left-col">
                     <Branding />
 
@@ -352,22 +367,24 @@ export default function App() {
                         }}
                     >
                         <AnimatePresence mode="wait">
-                            <Routes location={location} key={location.pathname}>
-                                <Route path="/" element={
-                                    <motion.div
-                                        key={activeTab}
-                                        initial={{ opacity: 0, x: activeTab === 'share' ? -16 : 16 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: activeTab === 'share' ? 16 : -16 }}
-                                        transition={{ duration: 0.22, ease: 'easeInOut' }}
-                                        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-                                    >
-                                        {activeTab === 'share' ? <UploadCard /> : <FetchCard />}
-                                    </motion.div>
-                                } />
-                                <Route path="/privacy" element={<Privacy />} />
-                                <Route path="/terms" element={<Terms />} />
-                            </Routes>
+                            <React.Suspense fallback={<div className="loading-fallback" />}>
+                                <Routes location={location} key={location.pathname}>
+                                    <Route path="/" element={
+                                        <motion.div
+                                            key={activeTab}
+                                            initial={{ opacity: 0, x: activeTab === 'share' ? -16 : 16 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: activeTab === 'share' ? 16 : -16 }}
+                                            transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                                        >
+                                            {activeTab === 'share' ? <UploadCard /> : <FetchCard />}
+                                        </motion.div>
+                                    } />
+                                    <Route path="/privacy" element={<Privacy />} />
+                                    <Route path="/terms" element={<Terms />} />
+                                </Routes>
+                            </React.Suspense>
                         </AnimatePresence>
                     </div>
 
@@ -375,7 +392,7 @@ export default function App() {
                     {location.pathname === '/' && <RecentShare />}
                 </motion.div>
 
-            </div>
+            </main>
 
             {/* Semantic SEO Rich Content for Bots (Hidden visually) */}
             <section className="sr-only">
