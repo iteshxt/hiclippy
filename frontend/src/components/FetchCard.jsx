@@ -22,6 +22,29 @@ import {
 /* ── Icons ──────────────────────────────────────────────── */
 const SpinIcon = () => <_SpinIcon className="spin" />;
 
+const linkify = (text) => {
+    if (!text) return '';
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) => {
+        if (part.match(urlRegex)) {
+            const href = part.startsWith('http') ? part : `https://${part}`;
+            return (
+                <a
+                    key={i}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--green)', textDecoration: 'underline', fontWeight: 600 }}
+                >
+                    {part}
+                </a>
+            );
+        }
+        return part;
+    });
+};
+
 export function FetchCard() {
     const [pasteId, setPasteId] = useState('');
     const [loading, setLoading] = useState(false);
@@ -185,7 +208,7 @@ export function FetchCard() {
                         {paste.contentType === 'text' && (
                             <>
                                 <div className="content-display">
-                                    <pre>{paste.content}</pre>
+                                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{linkify(paste.content)}</pre>
                                 </div>
                                 <motion.button
                                     className="copy-btn"

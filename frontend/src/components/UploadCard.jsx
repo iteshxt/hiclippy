@@ -31,13 +31,10 @@ function SlidingPills({ label, options, value, onChange }) {
 
     useEffect(() => {
         const activeEl = buttonRefs.current[value];
-        const container = containerRef.current;
-        if (!activeEl || !container) return;
-        const containerRect = container.getBoundingClientRect();
-        const btnRect = activeEl.getBoundingClientRect();
+        if (!activeEl) return;
         setPillStyle({
-            left: btnRect.left - containerRect.left,
-            width: btnRect.width,
+            left: activeEl.offsetLeft,
+            width: activeEl.offsetWidth,
         });
     }, [value]);
 
@@ -59,9 +56,9 @@ function SlidingPills({ label, options, value, onChange }) {
                         onClick={() => onChange(opt.value)}
                         data-tooltip={opt.label}
                     >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: value === opt.value && opt.icon ? '6px' : '0' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: opt.icon ? '6px' : '0' }}>
                             {opt.icon && <span style={{ display: 'flex', alignItems: 'center' }}>{opt.icon}</span>}
-                            {(opt.showLabel !== false || value === opt.value) && <span>{opt.label}</span>}
+                            <span>{opt.label}</span>
                         </span>
                     </button>
                 ))}
@@ -72,10 +69,9 @@ function SlidingPills({ label, options, value, onChange }) {
 
 /* ── Content type options ───────────────────────────────── */
 const contentTypes = [
-    { value: 'text',  label: 'Text',  icon: <TypeIcon />,  showLabel: false },
-    { value: 'image', label: 'Image', icon: <ImageIcon />, showLabel: false },
-    { value: 'link',  label: 'Link',  icon: <LinkIcon />,  showLabel: false },
-    { value: 'file',  label: 'File',  icon: <FileIcon />,  showLabel: false },
+    { value: 'text',  label: 'Text',  icon: <TypeIcon /> },
+    { value: 'image', label: 'Image', icon: <ImageIcon /> },
+    { value: 'file',  label: 'File',  icon: <FileIcon /> },
 ];
 
 const durationOptions = [
@@ -191,10 +187,7 @@ export function UploadCard() {
         setError(null);
     };
 
-    const placeholder =
-        contentType === 'text'  ? 'Paste your text...' :
-        contentType === 'image' ? 'Paste image URL...' :
-        contentType === 'link'  ? 'https://example.com' : '';
+    const placeholder = 'Paste your text...';
 
     /* Success */
     if (result) {
