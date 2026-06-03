@@ -179,6 +179,26 @@ body {
   z-index: 0;
 }
 
+@keyframes sway-grass {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(var(--sway-angle, 3deg)); }
+}
+
+.sway-grass {
+  transform-origin: var(--sway-origin-x) 321px;
+  animation: sway-grass var(--sway-duration) ease-in-out infinite;
+  animation-delay: var(--sway-delay);
+}
+
+@keyframes sway-flower {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  50% { transform: rotate(4deg) translateX(1px); }
+}
+
+.sway-flower {
+  animation: sway-flower 6s ease-in-out infinite;
+}
+
 /* ─── LEFT COLUMN ────────────────────────────────────────── */
 .left-col {
   display: flex;

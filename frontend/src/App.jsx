@@ -35,19 +35,30 @@ function NatureBg() {
         // 2. Five Layers of Dense Grass
         const grassLayers = [...Array(5)].map((_, layerIndex) => {
             const count = 50 + (layerIndex * 15);
-            return [...Array(count)].map((__, i) => {
-                const type = i % 3; // 0: standard, 1: thick, 2: tapered/wild
-                return {
-                    x: Math.random() * 1500 - 50,
-                    h: (20 + (layerIndex * 10)) + Math.random() * (20 + layerIndex * 5),
-                    strokeWidth: type === 1 ? 3.5 : (type === 2 ? 1.5 : 2.5),
-                    opacity: 0.3 + (layerIndex * 0.12),
-                    color: ["#8ecfa8", "#6fb58d", "#4ba371", "#3a8f5e", "#2a6e40"][layerIndex],
-                    duration: 3 + Math.random() * 4,
-                    delay: Math.random() * 5,
-                    skew: (Math.random() - 0.5) * 12
-                };
+            const blades = [...Array(count)].map((__, i) => {
+                const type = i % 3;
+                const x = Math.random() * 1500 - 50;
+                const h = (20 + (layerIndex * 10)) + Math.random() * (20 + layerIndex * 5);
+                const skew = (Math.random() - 0.5) * 12;
+                return { type, x, h, skew };
             });
+
+            const paths = [0, 1, 2].map(type => {
+                return blades
+                    .filter(b => b.type === type)
+                    .map(b => `M${b.x},321 Q${b.x + b.skew},${320 - b.h / 2} ${b.x},${320 - b.h}`)
+                    .join(' ');
+            });
+
+            return {
+                color: ["#8ecfa8", "#6fb58d", "#4ba371", "#3a8f5e", "#2a6e40"][layerIndex],
+                opacity: 0.3 + (layerIndex * 0.12),
+                paths: {
+                    thin: paths[2],   // type 2 (wild/tapered)
+                    medium: paths[0], // type 0 (standard)
+                    thick: paths[1]   // type 1 (thick)
+                }
+            };
         });
 
         // 3. Scattered Flowers
@@ -82,33 +93,15 @@ function NatureBg() {
                     );
                 })}
 
-                {/* 5 Layers of Grass */}
+                {/* 5 Layers of Grass (Combined Paths for Maximum Performance) */}
                 {props.grassLayers && props.grassLayers.map((layer, lIdx) => {
                     if (!layer) return null;
+                    const swayClass = lIdx % 2 === 0 ? "sway-layer-even" : "sway-layer-odd";
                     return (
-                        <g key={`layer-${lIdx}`}>
-                            {layer.map((g, i) => {
-                                if (!g || typeof g.x !== 'number' || typeof g.h !== 'number' || typeof g.skew !== 'number') return null;
-                                return (
-                                    <motion.path
-                                        key={`g-${lIdx}-${i}`}
-                                        d={`M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`}
-                                        stroke={g.color}
-                                        strokeWidth={g.strokeWidth}
-                                        strokeLinecap="round"
-                                        fill="none"
-                                        opacity={g.opacity}
-                                        animate={{
-                                            d: [
-                                                `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`,
-                                                `M${g.x},321 Q${g.x + g.skew + 8},${320 - g.h / 2} ${g.x + 4},${320 - g.h}`,
-                                                `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`
-                                            ]
-                                        }}
-                                        transition={{ duration: g.duration, repeat: Infinity, ease: "easeInOut", delay: g.delay }}
-                                    />
-                                );
-                            })}
+                        <g key={`layer-${lIdx}`} className={swayClass} style={{ transformOrigin: '50% 320px' }}>
+                            <path d={layer.paths.thin} stroke={layer.color} strokeWidth="1.5" strokeLinecap="round" fill="none" opacity={layer.opacity} />
+                            <path d={layer.paths.medium} stroke={layer.color} strokeWidth="2.5" strokeLinecap="round" fill="none" opacity={layer.opacity} />
+                            <path d={layer.paths.thick} stroke={layer.color} strokeWidth="3.5" strokeLinecap="round" fill="none" opacity={layer.opacity} />
                         </g>
                     );
                 })}
@@ -119,17 +112,19 @@ function NatureBg() {
                     return (
                         <g key={`f-${i}`}>
                             <path d={`M${f.x},320 Q${f.x + 2},${320 - f.stemH / 2} ${f.x},${320 - f.stemH}`} stroke="#2a6e40" strokeWidth="1.2" fill="none" opacity={0.5} />
-                            <motion.g
-                                animate={{ rotate: [0, 5, -5, 0], x: [0, 2, -2, 0] }}
-                                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: f.delay }}
-                                style={{ transformOrigin: `${f.x}px ${320 - f.stemH}px` }}
+                            <g
+                                className="sway-flower"
+                                style={{
+                                    transformOrigin: `${f.x}px ${320 - f.stemH}px`,
+                                    animationDelay: `${-f.delay}s`
+                                }}
                             >
                                 <circle cx={f.x} cy={320 - f.stemH - 4} r="4" fill={f.color} />
                                 <circle cx={f.x - 4} cy={320 - f.stemH} r="4" fill={f.color} />
                                 <circle cx={f.x + 4} cy={320 - f.stemH} r="4" fill={f.color} />
                                 <circle cx={f.x} cy={320 - f.stemH + 4} r="4" fill={f.color} />
                                 <circle cx={f.x} cy={320 - f.stemH} r="3" fill="#f4c430" />
-                            </motion.g>
+                            </g>
                         </g>
                     );
                 })}
