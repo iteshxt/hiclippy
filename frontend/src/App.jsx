@@ -187,6 +187,7 @@ function Mascot() {
                 transition={{ duration: 0.5 }}
                 aria-hidden="true"
                 fetchPriority="high"
+                onContextMenu={(e) => e.preventDefault()}
             >
                 <track kind="captions" src="" label="Mute" />
             </motion.video>
