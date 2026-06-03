@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { UploadCard } from './components/UploadCard';
 import { FetchCard } from './components/FetchCard';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 
-import { 
-    Zap as ZapIcon, 
-    Lock as LockIcon, 
-    Box as BoxIcon, 
+import {
+    Zap as ZapIcon,
+    Lock as LockIcon,
+    Box as BoxIcon,
     Hash as HashIcon,
     Copy as _CopyIconSmall
 } from 'lucide-react';
 
 const features = [
-    { Icon: ZapIcon,  title: 'Online Clipboard',    desc: 'Instantly share text snippets between devices.' },
-    { Icon: LockIcon, title: 'Anonymous Sharing',    desc: 'No login required. Your content is truly private.' },
-    { Icon: BoxIcon,  title: 'Cross-Device Host',    desc: 'Drop files up to 10MB; retrieve them anywhere.' },
-    { Icon: HashIcon, title: '4-Digit Code',         desc: 'Just enter a simple code to fetch your clipboard.' },
+    { Icon: ZapIcon, title: 'Zero Friction Sharing', desc: 'Instantly share text snippets and files up to 10MB—no accounts, no logins.' },
+    { Icon: HashIcon, title: '4-Digit Quick Retrieval', desc: 'Fetch your shared clipboard on any device using a simple, temporary code.' },
+    { Icon: LockIcon, title: 'Auto-Destruct Privacy', desc: 'Your shared content is private and automatically wiped forever upon expiry.' },
 ];
 
 /* ── Nature SVG Background ──────────────────────────────── */
@@ -69,11 +71,11 @@ function NatureBg() {
             >
                 {/* Procedural Static Hills */}
                 {props.hills.map((d, i) => (
-                    <path 
-                        key={`hill-${i}`} 
-                        d={d} 
-                        fill={["#f0faf4", "#e2f5e9", "#d4eedd", "#c6e7d1"][i]} 
-                        opacity={0.6 + (i * 0.1)} 
+                    <path
+                        key={`hill-${i}`}
+                        d={d}
+                        fill={["#f0faf4", "#e2f5e9", "#d4eedd", "#c6e7d1"][i]}
+                        opacity={0.6 + (i * 0.1)}
                     />
                 ))}
 
@@ -83,17 +85,17 @@ function NatureBg() {
                         {layer.map((g, i) => (
                             <motion.path
                                 key={`g-${lIdx}-${i}`}
-                                d={`M${g.x},321 Q${g.x + g.skew},${320 - g.h/2} ${g.x},${320 - g.h}`}
+                                d={`M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`}
                                 stroke={g.color}
                                 strokeWidth={g.strokeWidth}
                                 strokeLinecap="round"
                                 fill="none"
                                 opacity={g.opacity}
-                                animate={{ 
+                                animate={{
                                     d: [
-                                        `M${g.x},321 Q${g.x + g.skew},${320 - g.h/2} ${g.x},${320 - g.h}`,
-                                        `M${g.x},321 Q${g.x + g.skew + 8},${320 - g.h/2} ${g.x + 4},${320 - g.h}`,
-                                        `M${g.x},321 Q${g.x + g.skew},${320 - g.h/2} ${g.x},${320 - g.h}`
+                                        `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`,
+                                        `M${g.x},321 Q${g.x + g.skew + 8},${320 - g.h / 2} ${g.x + 4},${320 - g.h}`,
+                                        `M${g.x},321 Q${g.x + g.skew},${320 - g.h / 2} ${g.x},${320 - g.h}`
                                     ]
                                 }}
                                 transition={{ duration: g.duration, repeat: Infinity, ease: "easeInOut", delay: g.delay }}
@@ -105,7 +107,7 @@ function NatureBg() {
                 {/* Scattered Mixed Flowers */}
                 {props.flowers.map((f, i) => (
                     <g key={`f-${i}`}>
-                        <path d={`M${f.x},320 Q${f.x + 2},${320 - f.stemH/2} ${f.x},${320 - f.stemH}`} stroke="#2a6e40" strokeWidth="1.2" fill="none" opacity={0.5} />
+                        <path d={`M${f.x},320 Q${f.x + 2},${320 - f.stemH / 2} ${f.x},${320 - f.stemH}`} stroke="#2a6e40" strokeWidth="1.2" fill="none" opacity={0.5} />
                         <motion.g
                             animate={{ rotate: [0, 5, -5, 0], x: [0, 2, -2, 0] }}
                             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: f.delay }}
@@ -124,23 +126,27 @@ function NatureBg() {
     );
 }
 
-/* ── Developer Credits ──────────────────────────────────── */
 function DeveloperInfo() {
+    const [isOpen, setIsOpen] = useState(false);
     return (
-        <motion.div 
+        <motion.div
             className="dev-credits"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 1 }}
         >
-            <div className="dev-pill">
+            <div
+                className={`dev-pill${isOpen ? ' open' : ''}`}
+                onClick={() => setIsOpen(!isOpen)}
+                style={{ cursor: 'pointer' }}
+            >
                 <span className="dev-label">Crafted by</span>
                 <span className="dev-name">iteshxt</span>
-                
+
                 <div className="dev-links">
-                    <a href="https://github.com/iteshxt" target="_blank" rel="noopener noreferrer">GitHub</a>
-                    <a href="https://iteshxt.me" target="_blank" rel="noopener noreferrer">Website</a>
-                    <a href="mailto:iteshxt@gmail.com">Email</a>
+                    <a href="https://github.com/iteshxt" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>GitHub</a>
+                    <a href="https://iteshxt.me" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>Website</a>
+                    <a href="mailto:iteshxt@gmail.com" onClick={(e) => e.stopPropagation()}>Email</a>
                 </div>
             </div>
         </motion.div>
@@ -150,35 +156,24 @@ function DeveloperInfo() {
 /* ── Fade-in variant for left col items ─────────────────── */
 const fadeUp = {
     hidden: { opacity: 0, y: 22 },
-    show:   { opacity: 1, y: 0 },
+    show: { opacity: 1, y: 0 },
 };
 
 /* ── Animated Mascot Switcher ───────────────────────────── */
 function Mascot() {
-    const [gifLoaded, setGifLoaded] = React.useState(false);
-
     return (
         <div className="mascot-wrapper">
-            {/* Background PNG - Always there until GIF is ready */}
-            <motion.img
-                src="/images/lizard.png"
-                alt="Static mascot"
-                className="mascot-img static"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: gifLoaded ? 0 : 1 }}
-                transition={{ type: 'spring', stiffness: 200, damping: 18 }}
-            />
-            
-            {/* Animated GIF - Fades in once loaded */}
-            <motion.img
-                src="/images/lizard.gif"
-                alt="Animated mascot"
-                className="mascot-img animated"
-                onLoad={() => setGifLoaded(true)}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: gifLoaded ? 1 : 0 }}
-                transition={{ duration: 0.4 }}
-                whileHover={{ scale: 1.07 }}
+            <motion.video
+                src="/images/tom.webm"
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="mascot-img"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+
             />
         </div>
     );
@@ -187,7 +182,7 @@ function Mascot() {
 /* ── Branding ── */
 function Branding() {
     return (
-        <motion.div 
+        <motion.div
             className="brand-section"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -196,9 +191,10 @@ function Branding() {
             <div className="brand-row">
                 <Mascot />
                 <div className="brand-info">
-                    <h1 className="brand-name">HiClippy</h1>
+                    <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <span className="brand-name" style={{ cursor: 'pointer', display: 'block' }}>HiClippy</span>
+                    </Link>
                     <div className="brand-meta">
-                        <span className="beta-badge">BETA</span>
                         <span className="brand-tagline">The Ultimate Online Clipboard</span>
                     </div>
                 </div>
@@ -209,6 +205,52 @@ function Branding() {
 
 export default function App() {
     const [activeTab, setActiveTab] = useState('share');
+    const location = useLocation();
+    const [hasRecentShare, setHasRecentShare] = useState(false);
+
+    // Track recent share existence to dynamically size the main card
+    React.useEffect(() => {
+        const checkRecent = () => {
+            const saved = localStorage.getItem('recentShare');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.expiresAt && new Date() > new Date(parsed.expiresAt)) {
+                    setHasRecentShare(false);
+                } else {
+                    setHasRecentShare(true);
+                }
+            } else {
+                setHasRecentShare(false);
+            }
+        };
+        checkRecent();
+        window.addEventListener('recentShareUpdated', checkRecent);
+        const interval = setInterval(checkRecent, 1000);
+        return () => {
+            window.removeEventListener('recentShareUpdated', checkRecent);
+            clearInterval(interval);
+        };
+    }, []);
+
+    // Dynamically update SEO title & meta description on route changes
+    React.useEffect(() => {
+        let title = 'HiClippy – The Best Online Clipboard | Share Text & Files Instantly';
+        let desc = 'HiClippy is the ultimate online clipboard for instant, anonymous sharing. Send text, images, and files between devices with a simple 4-digit code. The fastest clippy online alternative for private snippet sharing.';
+
+        if (location.pathname === '/privacy') {
+            title = 'Privacy Policy – HiClippy Online Clipboard';
+            desc = 'Learn about HiClippy privacy standards, database auto-deletion, zero permanent logs, and rate limit protections.';
+        } else if (location.pathname === '/terms') {
+            title = 'Terms of Service – HiClippy Online Clipboard';
+            desc = 'Read the terms of service and usage rules for HiClippy clipboard sharing platform.';
+        }
+
+        document.title = title;
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) {
+            metaDesc.setAttribute('content', desc);
+        }
+    }, [location.pathname]);
 
     return (
         <div className="page-shell">
@@ -216,45 +258,54 @@ export default function App() {
             <DeveloperInfo />
 
             <div className="page-inner">
-                <Branding />
+                <div className="left-col">
+                    <Branding />
 
-                {/* ── Hero (Heading) ── */}
-                <motion.div 
-                    className="hero-section" 
-                    variants={fadeUp}
-                    initial="hidden"
-                    animate="show"
-                >
-                    <h2 className="hero-headline">
-                        Your Ultimate<br />Online Clipboard
-                    </h2>
-                    <p className="hero-sub">The fastest <strong>clippy online</strong> alternative for sharing snippets and files.</p>
-                </motion.div>
+                    {/* ── Hero (Heading) ── */}
+                    <motion.div
+                        className="hero-section"
+                        variants={fadeUp}
+                        initial="hidden"
+                        animate="show"
+                    >
+                        <h1 className="hero-headline">
+                            Your Ultimate<br />Online Clipboard
+                        </h1>
+                        <p className="hero-sub">Instant cross-device clipboard sharing. Send snippets, images, and files securely with zero friction.</p>
+                    </motion.div>
 
-                {/* ── Features ── */}
-                <motion.div 
-                    className="features-section"
-                    initial="hidden"
-                    animate="show"
-                    variants={{ show: { transition: { staggerChildren: 0.1 } } }}
-                >
-                    <div className="features">
-                        {features.map(({ Icon, title, desc }, i) => (
-                            <motion.div
-                                key={title}
-                                className="feat-item"
-                                variants={fadeUp}
-                                transition={{ delay: i * 0.06 }}
-                            >
-                                <div className="feat-icon"><Icon /></div>
-                                <div className="feat-body">
-                                    <p className="feat-title">{title}</p>
-                                    <p className="feat-desc">{desc}</p>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </motion.div>
+                    {/* ── Features ── */}
+                    <motion.div
+                        className="features-section"
+                        initial="hidden"
+                        animate="show"
+                        variants={{ show: { transition: { staggerChildren: 0.1 } } }}
+                    >
+                        <div className="features">
+                            {features.map(({ Icon, title, desc }, i) => (
+                                <motion.div
+                                    key={title}
+                                    className="feat-item"
+                                    variants={fadeUp}
+                                    transition={{ delay: i * 0.06 }}
+                                >
+                                    <div className="feat-icon"><Icon /></div>
+                                    <div className="feat-body">
+                                        <p className="feat-title">{title}</p>
+                                        <p className="feat-desc">{desc}</p>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* Legal Footer Links */}
+                        <div className="legal-footer-links">
+                            <Link to="/privacy" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--green)'} onMouseLeave={(e) => e.target.style.color = 'inherit'}>Privacy Policy</Link>
+                            <span>•</span>
+                            <Link to="/terms" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--green)'} onMouseLeave={(e) => e.target.style.color = 'inherit'}>Terms & Conditions</Link>
+                        </div>
+                    </motion.div>
+                </div>
 
                 {/* ── RIGHT ── */}
                 <motion.div
@@ -263,54 +314,81 @@ export default function App() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.15, ease: 'easeOut' }}
                 >
-                    {/* Tabs */}
-                    <div className="tab-strip">
-                        {['share', 'fetch'].map((tab) => (
-                            <button
-                                key={tab}
-                                className={`tab-btn${activeTab === tab ? ' active' : ''}`}
-                                onClick={() => setActiveTab(tab)}
-                            >
-                                {tab === 'share' ? 'Share' : 'Retrieve'}
-                                {activeTab === tab && (
-                                    <motion.div
-                                        layoutId="tab-underline"
-                                        style={{
-                                            position: 'absolute',
-                                            bottom: 0,
-                                            left: 8,
-                                            right: 8,
-                                            height: 2,
-                                            background: 'var(--green)',
-                                            borderRadius: 2,
-                                        }}
-                                    />
-                                )}
-                            </button>
-                        ))}
-                    </div>
+                    {/* Tabs (Only on homepage) */}
+                    {location.pathname === '/' && (
+                        <div className="tab-strip">
+                            {['share', 'fetch'].map((tab) => (
+                                <button
+                                    key={tab}
+                                    className={`tab-btn${activeTab === tab ? ' active' : ''}`}
+                                    onClick={() => setActiveTab(tab)}
+                                >
+                                    {tab === 'share' ? 'Share' : 'Retrieve'}
+                                    {activeTab === tab && (
+                                        <motion.div
+                                            layoutId="tab-underline"
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: 0,
+                                                left: 8,
+                                                right: 8,
+                                                height: 2,
+                                                background: 'var(--green)',
+                                                borderRadius: 2,
+                                            }}
+                                        />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Card */}
-                    <div className="main-card">
+                    <div
+                        className="main-card"
+                        style={{
+                            height: location.pathname === '/' ? (hasRecentShare ? '418px' : '480px') : 'auto',
+                            borderRadius: location.pathname === '/' ? '0 0 20px 20px' : '20px'
+                        }}
+                    >
                         <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeTab}
-                                initial={{ opacity: 0, x: activeTab === 'share' ? -16 : 16 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: activeTab === 'share' ? 16 : -16 }}
-                                transition={{ duration: 0.22, ease: 'easeInOut' }}
-                                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-                            >
-                                {activeTab === 'share' ? <UploadCard /> : <FetchCard />}
-                            </motion.div>
+                            <Routes location={location} key={location.pathname}>
+                                <Route path="/" element={
+                                    <motion.div
+                                        key={activeTab}
+                                        initial={{ opacity: 0, x: activeTab === 'share' ? -16 : 16 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: activeTab === 'share' ? 16 : -16 }}
+                                        transition={{ duration: 0.22, ease: 'easeInOut' }}
+                                        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                                    >
+                                        {activeTab === 'share' ? <UploadCard /> : <FetchCard />}
+                                    </motion.div>
+                                } />
+                                <Route path="/privacy" element={<Privacy />} />
+                                <Route path="/terms" element={<Terms />} />
+                            </Routes>
                         </AnimatePresence>
                     </div>
 
-                    {/* Recent Share floating pill */}
-                    <RecentShare />
+                    {/* Recent Share floating pill (Only on homepage) */}
+                    {location.pathname === '/' && <RecentShare />}
                 </motion.div>
 
             </div>
+
+            {/* Semantic SEO Rich Content for Bots (Hidden visually) */}
+            <section className="sr-only">
+                <h2>Frequently Asked Questions about Online Clipboard</h2>
+                <h3>What is HiClippy?</h3>
+                <p>HiClippy is a free, nature-inspired online clipboard tool that lets you securely share text snippets, links, images, and files across multiple devices anonymously. Using a simple 4-digit code, you can fetch your clipboard anywhere with zero accounts or logins required.</p>
+
+                <h3>Is this online clipboard secure?</h3>
+                <p>Yes. HiClippy prioritizes privacy. Your clipboard uploads are stored temporarily and automatically destroyed based on your chosen expiry time (up to 10 minutes) using automated database sweeps. No permanent activity logs are kept, and browser fingerprint hashes are only used to limit spam.</p>
+
+                <h3>How do I use a clippy online clipboard?</h3>
+                <p>Simply paste your text or drag your files up to 10MB into the input box on our homepage. Click share to generate a unique 4-digit code. Go to your target device, enter the retrieval code, and download or copy the contents instantly.</p>
+            </section>
         </div>
     );
 }
@@ -340,10 +418,10 @@ function RecentShare() {
                 setRecent(null);
             }
         };
-        
+
         loadRecent();
         window.addEventListener('recentShareUpdated', loadRecent);
-        
+
         interval = setInterval(() => {
             if (recent?.expiresAt && new Date() > new Date(recent.expiresAt)) {
                 localStorage.removeItem('recentShare');
@@ -373,15 +451,15 @@ function RecentShare() {
             <div className="recent-code">
                 <span>Code:</span>
                 <strong>{recent.id}</strong>
-                <button 
+                <button
                     onClick={() => {
                         navigator.clipboard.writeText(recent.id);
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2000);
-                    }} 
+                    }}
                     title="Copy Code"
                 >
-                    {copied ? <span style={{fontSize: 10, fontWeight: 'bold', color: 'var(--green)'}}>✓</span> : <CopyIconSmall />}
+                    {copied ? <span style={{ fontSize: 10, fontWeight: 'bold', color: 'var(--green)' }}>✓</span> : <CopyIconSmall />}
                 </button>
             </div>
         </motion.div>
