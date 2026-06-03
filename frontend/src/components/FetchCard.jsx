@@ -141,6 +141,8 @@ export function FetchCard() {
                             <p className="fetch-label" style={{ marginBottom: 16, textAlign: 'center' }}>Enter 4-Digit Code</p>
                             <input
                                 type="text"
+                                id="fetch-code"
+                                name="code"
                                 className="code-input"
                                 value={pasteId}
                                 onChange={(e) => setPasteId(e.target.value.slice(0, 4).replace(/[^0-9]/g, ''))}
