@@ -120,6 +120,37 @@ describe('Rate Limiting & Health Check', () => {
     vi.useRealTimers();
   });
 
+  it('4.6 Failed lookups should be limited, successful ones not', async () => {
+    const ua = 'test-lookup-limit';
+    let last;
+    for (let i = 0; i < 30; i++) {
+      last = await request(app).get('/api/paste/0001').set('User-Agent', ua);
+      expect(last.status).toBe(404);
+    }
+    last = await request(app).get('/api/paste/0001').set('User-Agent', ua);
+    expect(last.status).toBe(429);
+    expect(last.body.error).toContain('wrong codes');
+
+    // A different device is unaffected
+    const other = await request(app).get('/api/paste/0001').set('User-Agent', 'test-lookup-other');
+    expect(other.status).toBe(404);
+  });
+
+  it('4.7 Same browser on a different IP should be a different fingerprint', async () => {
+    const ua = 'test-ip-split';
+    for (let i = 0; i < 5; i++) {
+      await request(app).post('/api/paste').set('User-Agent', ua).set('X-Forwarded-For', '203.0.113.1')
+        .send({ content: 'x', contentType: 'text' });
+    }
+    const blocked = await request(app).post('/api/paste').set('User-Agent', ua).set('X-Forwarded-For', '203.0.113.1')
+      .send({ content: 'x', contentType: 'text' });
+    expect(blocked.status).toBe(429);
+
+    const otherIp = await request(app).post('/api/paste').set('User-Agent', ua).set('X-Forwarded-For', '203.0.113.2')
+      .send({ content: 'x', contentType: 'text' });
+    expect(otherIp.status).toBe(201);
+  });
+
 });
 
 describe('Health Check', () => {

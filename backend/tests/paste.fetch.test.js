@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 
 vi.mock('../src/middleware/fingerprint.js', () => ({
-  fingerprintMiddleware: (req, res, next) => { req.fingerprint = 'test-fingerprint'; next(); }
+  fingerprintMiddleware: (req, res, next) => { req.fingerprint = req.get('x-test-fingerprint') || 'test-fingerprint'; next(); },
+  lookupLimiter: (req, res, next) => next(),
 }));
 import request from 'supertest';
 import app from '../src/app.js';
@@ -116,6 +117,55 @@ describe('GET /api/paste/:id', () => {
     expect(res.status).toBe(200);
     expect(res.body.fileName).toBeUndefined();
     expect(res.body.mimeType).toBeUndefined();
+  });
+
+  it('2.11 ?meta=1 should omit file content but keep metadata', async () => {
+    const createRes = await request(app)
+      .post('/api/paste')
+      .field('contentType', 'file')
+      .attach('file', Buffer.from('hello file'), 'note.txt');
+    const res = await request(app).get(`/api/paste/${createRes.body.id}?meta=1`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.content).toBeUndefined();
+    expect(res.body.fileName).toBe('note.txt');
+    expect(res.body.fileSize).toBe(10);
+  });
+
+  it('2.12 /raw should return the original bytes as a safe download', async () => {
+    const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 1, 2, 255]);
+    const createRes = await request(app)
+      .post('/api/paste')
+      .field('contentType', 'file')
+      .attach('file', bytes, { filename: 'pic é.png', contentType: 'image/png' });
+    const res = await request(app)
+      .get(`/api/paste/${createRes.body.id}/raw`)
+      .buffer(true)
+      .parse((r, cb) => { const c = []; r.on('data', d => c.push(d)); r.on('end', () => cb(null, Buffer.concat(c))); });
+
+    expect(res.status).toBe(200);
+    expect(Buffer.compare(res.body, bytes)).toBe(0);
+    expect(res.headers['content-type']).toBe('image/png');
+    expect(res.headers['content-disposition']).toMatch(/^attachment;/);
+    expect(res.headers['content-disposition']).toContain("filename*=UTF-8''pic%20%C3%A9.png");
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['content-security-policy']).toContain('sandbox');
+  });
+
+  it('2.13 /raw should serve text pastes as plain text', async () => {
+    const createRes = await request(app)
+      .post('/api/paste')
+      .send({ content: '<script>alert(1)</script>', contentType: 'text' });
+    const res = await request(app).get(`/api/paste/${createRes.body.id}/raw`);
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toMatch(/^text\/plain/);
+    expect(res.text).toBe('<script>alert(1)</script>');
+  });
+
+  it('2.14 /raw should 404 for unknown codes', async () => {
+    const res = await request(app).get('/api/paste/0000/raw');
+    expect(res.status).toBe(404);
   });
 
 });
