@@ -191,11 +191,10 @@ function PreviewBody({ kind, url, bytes, fileName, expanded, onFail }) {
 }
 
 /* ── Main component ─────────────────────────────────────── */
-export function FilePreview({ content, mimeType, fileName }) {
+export function FilePreview({ bytes, mimeType, fileName }) {
     const [expanded, setExpanded] = useState(false);
     const [failed, setFailed] = useState(false);
 
-    const bytes = useMemo(() => base64ToBytes(content), [content]);
     const initialKind = useMemo(() => detectPreviewKind(mimeType, fileName), [mimeType, fileName]);
     const kind = failed ? 'none' : initialKind;
 

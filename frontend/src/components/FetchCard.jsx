@@ -70,8 +70,21 @@ export function FetchCard() {
         setPaste(null);
         setLoading(true);
         try {
-            const res = await axios.get(`${API_URL}/api/paste/${pasteId}`);
-            setPaste(res.data);
+            // Metadata first; file bytes come from /raw as binary, which is
+            // smaller than base64-in-JSON. An older backend ignores ?meta and
+            // still sends base64 `content`, so handle both.
+            const res = await axios.get(`${API_URL}/api/paste/${pasteId}`, { params: { meta: 1 } });
+            const data = res.data;
+            if (data.contentType === 'file') {
+                if (typeof data.content === 'string') {
+                    data.bytes = base64ToBytes(data.content);
+                } else {
+                    const raw = await axios.get(`${API_URL}/api/paste/${pasteId}/raw`, { responseType: 'arraybuffer' });
+                    data.bytes = new Uint8Array(raw.data);
+                }
+                delete data.content;
+            }
+            setPaste(data);
         } catch (err) {
             setError(err.response?.data?.error || 'Content not found or expired');
         } finally {
@@ -88,9 +101,8 @@ export function FetchCard() {
     };
 
     const downloadFile = () => {
-        if (paste?.contentType === 'file' && paste?.content) {
-            const bytes = base64ToBytes(paste.content);
-            const blob = new Blob([bytes], { type: paste.mimeType });
+        if (paste?.contentType === 'file' && paste?.bytes) {
+            const blob = new Blob([paste.bytes], { type: paste.mimeType });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -109,8 +121,7 @@ export function FetchCard() {
         file: {
             Icon: FileIcon,
             label: paste?.fileName || 'File',
-            // base64 is 4 chars per 3 bytes, minus padding
-            meta: paste?.content ? formatBytes(Math.floor(paste.content.length * 3 / 4) - (paste.content.match(/=+$/)?.[0].length || 0)) : null,
+            meta: paste?.bytes ? formatBytes(paste.bytes.length) : null,
         },
     };
 
@@ -288,7 +299,7 @@ export function FetchCard() {
                             <>
                                 <FilePreview
                                     key={paste.id}
-                                    content={paste.content}
+                                    bytes={paste.bytes}
                                     mimeType={paste.mimeType}
                                     fileName={paste.fileName}
                                 />
