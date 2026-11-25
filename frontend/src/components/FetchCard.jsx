@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { FilePreview, base64ToBytes, formatBytes } from './FilePreview';
 
 // Use environment variable from Vite or fallback to local dev
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -88,11 +89,7 @@ export function FetchCard() {
 
     const downloadFile = () => {
         if (paste?.contentType === 'file' && paste?.content) {
-            const binaryString = atob(paste.content);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
+            const bytes = base64ToBytes(paste.content);
             const blob = new Blob([bytes], { type: paste.mimeType });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -109,7 +106,12 @@ export function FetchCard() {
         text: { Icon: TypeIcon, label: 'Text' },
         image: { Icon: ImageIcon, label: 'Image' },
         link: { Icon: LinkIcon, label: 'Link' },
-        file: { Icon: FileIcon, label: paste?.fileName || 'File' },
+        file: {
+            Icon: FileIcon,
+            label: paste?.fileName || 'File',
+            // base64 is 4 chars per 3 bytes, minus padding
+            meta: paste?.content ? formatBytes(Math.floor(paste.content.length * 3 / 4) - (paste.content.match(/=+$/)?.[0].length || 0)) : null,
+        },
     };
 
     return (
@@ -199,9 +201,10 @@ export function FetchCard() {
                         {(() => {
                             const info = typeInfo[paste.contentType] || typeInfo.file;
                             return (
-                                <div className="content-type-chip">
-                                    <span style={{ display: 'flex', width: 13, height: 13 }}><info.Icon /></span>
-                                    {info.label}
+                                <div className="content-type-chip" title={info.label}>
+                                    <span style={{ display: 'flex', width: 13, height: 13, flexShrink: 0 }}><info.Icon /></span>
+                                    <span className="chip-label">{info.label}</span>
+                                    {info.meta && <span className="chip-meta">{info.meta}</span>}
                                 </div>
                             );
                         })()}
@@ -243,7 +246,16 @@ export function FetchCard() {
                                     />
                                 </div>
                                 <motion.button className="copy-btn" onClick={copyToClipboard} whileTap={{ scale: 0.97 }} style={{ flexShrink: 0, marginTop: 'auto' }}>
-                                    <CopyIcon /> Copy URL
+                                    <CopyIcon /> {copied ? 'Copied!' : 'Copy URL'}
+                                </motion.button>
+                                <motion.button
+                                    className="reset-btn"
+                                    onClick={resetToInput}
+                                    whileTap={{ scale: 0.98 }}
+                                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}
+                                >
+                                    <RefreshIcon size={16} />
+                                    Retrieve Another
                                 </motion.button>
                             </>
                         )}
@@ -274,15 +286,12 @@ export function FetchCard() {
                         {/* File */}
                         {paste.contentType === 'file' && (
                             <>
-                                {paste.mimeType && paste.mimeType.startsWith('image/') && (
-                                    <div className="content-display" style={{ textAlign: 'center' }}>
-                                        <img
-                                            src={`data:${paste.mimeType};base64,${paste.content}`}
-                                            alt="Retrieved preview"
-                                            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                                        />
-                                    </div>
-                                )}
+                                <FilePreview
+                                    key={paste.id}
+                                    content={paste.content}
+                                    mimeType={paste.mimeType}
+                                    fileName={paste.fileName}
+                                />
                                 <motion.button className="copy-btn" onClick={downloadFile} whileTap={{ scale: 0.97 }} style={{ flexShrink: 0, marginTop: 'auto' }}>
                                     <DownloadIcon /> Download File
                                 </motion.button>
