@@ -1,14 +1,28 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 
 vi.mock('../src/middleware/fingerprint.js', () => ({
-  fingerprintMiddleware: (req, res, next) => next()
+  fingerprintMiddleware: (req, res, next) => { req.fingerprint = 'test-fingerprint'; next(); }
 }));
 import request from 'supertest';
 import app from '../src/app.js';
 import { connectDB, disconnectDB, clearDB } from './dbUtils.js';
+import { Paste } from '../src/models/Paste.js';
 
+// Pin expiry config so results don't depend on the developer's .env.
+// The route reads these on every request.
+const savedEnv = {};
 beforeAll(async () => {
+  for (const [k, v] of Object.entries({ PASTE_DEFAULT_EXPIRY_MINUTES: '5', PASTE_MAX_EXPIRY_MINUTES: '10' })) {
+    savedEnv[k] = process.env[k];
+    process.env[k] = v;
+  }
   await connectDB();
+});
+
+afterAll(() => {
+  for (const [k, v] of Object.entries(savedEnv)) {
+    if (v === undefined) delete process.env[k]; else process.env[k] = v;
+  }
 });
 
 afterAll(async () => {
@@ -103,6 +117,32 @@ describe('POST /api/paste', () => {
     
     expect(res.status).toBe(201);
     expect(res.body.expiryMinutes).toBe(5); // Default is 5
+  });
+
+  it('1.9b Should retry with a new code if the chosen one is taken at save time', async () => {
+    await Paste.init(); // make sure the unique index on `id` exists
+    await new Paste({
+      id: '1234', content: 'existing', contentType: 'text', fileSize: 8,
+      expiresAt: new Date(Date.now() + 60_000), fingerprint: 'other',
+    }).save();
+
+    // Simulate the race: the pre-check misses the existing paste once,
+    // and the random generator picks 1234 first, then 5678.
+    const findSpy = vi.spyOn(Paste, 'findOne').mockResolvedValueOnce(null);
+    const randSpy = vi.spyOn(Math, 'random').mockReturnValueOnce(0.1234).mockReturnValueOnce(0.5678);
+
+    try {
+      const res = await request(app)
+        .post('/api/paste')
+        .send({ content: 'new', contentType: 'text' });
+
+      expect(res.status).toBe(201);
+      expect(res.body.id).toBe('5678');
+      expect((await Paste.findOne({ id: '1234' })).content).toBe('existing');
+    } finally {
+      findSpy.mockRestore();
+      randSpy.mockRestore();
+    }
   });
 
   it('1.10 Should return exactly 4 digits id', async () => {

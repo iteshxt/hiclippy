@@ -32,7 +32,8 @@ const pasteSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      index: true,
+      // No `index: true` here: the TTL index below covers this field, and a
+      // second plain index with the same name stops the TTL one being created.
     },
     fingerprint: {
       type: String,

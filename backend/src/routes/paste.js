@@ -66,21 +66,32 @@ router.post('/paste', upload.single('file'), async (req, res) => {
       });
     }
 
-    const id = await generateUniqueId();
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
 
-    const paste = new Paste({
-      id,
-      content: pasteContent,
-      contentType: pasteContentType,
-      fileName,
-      fileSize,
-      mimeType,
-      expiresAt,
-      fingerprint: req.fingerprint,
-    });
-
-    await paste.save();
+    // generateUniqueId() checks then we save, so two uploads at the same
+    // moment can pick the same code. The unique index rejects the second
+    // one (E11000); pick a new code and try again instead of returning 500.
+    const MAX_SAVE_ATTEMPTS = 5;
+    let id;
+    for (let attempt = 1; ; attempt++) {
+      id = await generateUniqueId();
+      try {
+        await new Paste({
+          id,
+          content: pasteContent,
+          contentType: pasteContentType,
+          fileName,
+          fileSize,
+          mimeType,
+          expiresAt,
+          fingerprint: req.fingerprint,
+        }).save();
+        break;
+      } catch (err) {
+        if (err?.code !== 11000 || attempt >= MAX_SAVE_ATTEMPTS) throw err;
+        console.warn(`[PASTE] Code ${id} was taken during save, retrying (${attempt}/${MAX_SAVE_ATTEMPTS})`);
+      }
+    }
     console.log(`[PASTE] Successfully created paste: ${id} (${pasteContentType}, ${fileSize} bytes)`);
 
     res.status(201).json({

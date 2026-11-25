@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 
 vi.mock('../src/middleware/fingerprint.js', () => ({
-  fingerprintMiddleware: (req, res, next) => next()
+  fingerprintMiddleware: (req, res, next) => { req.fingerprint = 'test-fingerprint'; next(); }
 }));
 import request from 'supertest';
 import app from '../src/app.js';
