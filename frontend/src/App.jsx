@@ -221,19 +221,7 @@ export default function App() {
 
     // Track recent share existence to dynamically size the main card
     React.useEffect(() => {
-        const checkRecent = () => {
-            const saved = localStorage.getItem('recentShare');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (parsed.expiresAt && new Date() > new Date(parsed.expiresAt)) {
-                    setHasRecentShare(false);
-                } else {
-                    setHasRecentShare(true);
-                }
-            } else {
-                setHasRecentShare(false);
-            }
-        };
+        const checkRecent = () => setHasRecentShare(!!readRecentShare());
         checkRecent();
         window.addEventListener('recentShareUpdated', checkRecent);
         const interval = setInterval(checkRecent, 1000);
@@ -406,6 +394,29 @@ export default function App() {
     );
 }
 
+/* ── recentShare storage ─────────────────────────────────────
+   Returns the saved share, or null if it's missing, expired or
+   unreadable. Bad or expired entries are removed. Storage can
+   also throw (private mode, blocked site data), so never let
+   that take the page down.
+────────────────────────────────────────────────────────────── */
+function readRecentShare() {
+    try {
+        const saved = localStorage.getItem('recentShare');
+        if (!saved) return null;
+        const parsed = JSON.parse(saved);
+        const expired = parsed?.expiresAt && new Date() > new Date(parsed.expiresAt);
+        if (!parsed || typeof parsed !== 'object' || !parsed.id || expired) {
+            localStorage.removeItem('recentShare');
+            return null;
+        }
+        return parsed;
+    } catch {
+        try { localStorage.removeItem('recentShare'); } catch { /* storage unavailable */ }
+        return null;
+    }
+}
+
 /* ── RecentShare Component ───────────────────────────────── */
 const CopyIconSmall = () => (
     <_CopyIconSmall size={14} strokeWidth={2.2} />
@@ -417,28 +428,14 @@ function RecentShare() {
 
     React.useEffect(() => {
         let interval;
-        const loadRecent = () => {
-            const saved = localStorage.getItem('recentShare');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (parsed.expiresAt && new Date() > new Date(parsed.expiresAt)) {
-                    localStorage.removeItem('recentShare');
-                    setRecent(null);
-                } else {
-                    setRecent(parsed);
-                }
-            } else {
-                setRecent(null);
-            }
-        };
+        const loadRecent = () => setRecent(readRecentShare());
 
         loadRecent();
         window.addEventListener('recentShareUpdated', loadRecent);
 
         interval = setInterval(() => {
             if (recent?.expiresAt && new Date() > new Date(recent.expiresAt)) {
-                localStorage.removeItem('recentShare');
-                setRecent(null);
+                setRecent(readRecentShare()); // also clears the expired entry
             }
         }, 1000);
 

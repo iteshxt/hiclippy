@@ -162,7 +162,9 @@ export function UploadCard() {
                     duration: duration,
                     expiresAt: res.data.expiresAt
                 };
-                localStorage.setItem('recentShare', JSON.stringify(recentShare));
+                try {
+                    localStorage.setItem('recentShare', JSON.stringify(recentShare));
+                } catch { /* storage blocked (e.g. private mode); the pill just won't show */ }
                 window.dispatchEvent(new Event('recentShareUpdated'));
             }
         } catch (err) {
