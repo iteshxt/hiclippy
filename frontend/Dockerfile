@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY --chown=node:node . .
 RUN npm run build
 
 # Stage 2: Production (Nginx)
-FROM nginx:1.25-alpine
+FROM nginx:1.28-alpine
 
 # Set working directory to nginx resources
 WORKDIR /usr/share/nginx/html
