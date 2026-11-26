@@ -1,27 +1,29 @@
 # HiClippy API — Test Plan
 
-## Stack Choice: Vitest + Supertest + mongodb-memory-server
+## Stack: Vitest + Supertest + a real MongoDB
 
 | Tool | Role |
 |---|---|
 | **Vitest** | Test runner — natively supports ESM (`"type": "module"`) with zero config. Jest requires transforms for ESM. |
 | **Supertest** | HTTP integration testing against the Express app without a real server |
-| **mongodb-memory-server** | Spins up a real in-memory MongoDB instance per test suite — no mocking, no Atlas connection needed |
+| **MongoDB** | Tests connect to `MONGO_URI` (environment or `backend/.env`), use a separate `clippy_test` database, and drop it when done (`tests/dbUtils.js`) |
 
 > [!IMPORTANT]
 > The project uses `"type": "module"` (ESM). **Jest requires painful Babel transforms to work with ESM.** Vitest supports it natively.
 
 ---
 
-## New packages to install
+## Running
 
 ```bash
-npm install -D vitest supertest @vitest/coverage-v8 mongodb-memory-server
+MONGO_URI=mongodb://localhost:27017 npm test
 ```
+
+The create tests pin `PASTE_DEFAULT_EXPIRY_MINUTES=5` and `PASTE_MAX_EXPIRY_MINUTES=10` themselves, so results don't depend on your `.env`. The paste tests mock the fingerprint middleware (fingerprint `test-fingerprint`, or the `x-test-fingerprint` header) and the lookup limiter; `ratelimit.test.js` uses the real ones.
 
 ---
 
-## File structure after setup
+## File structure
 
 ```
 backend/
@@ -31,11 +33,11 @@ backend/
 │   ├── middleware/fingerprint.js
 │   └── server.js
 ├── tests/
-│   ├── setup.js              ← MongoMemoryServer lifecycle
+│   ├── dbUtils.js            ← connect / clear / drop the clippy_test database
 │   ├── paste.create.test.js  ← POST /api/paste
-│   ├── paste.fetch.test.js   ← GET /api/paste/:id
+│   ├── paste.fetch.test.js   ← GET /api/paste/:id and /raw
 │   ├── paste.delete.test.js  ← DELETE /api/paste/:id
-│   └── ratelimit.test.js     ← Burst + hourly limits
+│   └── ratelimit.test.js     ← Upload, lookup and IP limits + health
 ├── vitest.config.js
 └── package.json
 ```
@@ -59,6 +61,7 @@ backend/
 | 1.9 | Duration 0 / NaN falls back | `{ content: "x", duration: "abc" }` | `201` + `expiryMinutes = 5` |
 | 1.10 | Returned id is exactly 4 digits | Any valid paste | `id` matches `/^\d{4}$/` |
 | 1.11 | `expiresAt` is in the future | Any valid paste | `new Date(expiresAt) > new Date()` |
+| 1.9b | Code taken between check and save | Existing paste `1234`; pre-check misses once; random picks 1234 then 5678 | `201` + `id = 5678`; existing paste untouched |
 | 1.12 | Image file upload (mimeType detection) | Multipart: PNG image buffer | `201`, saved `contentType = "file"`, `mimeType = "image/png"` |
 
 ---
@@ -77,6 +80,10 @@ backend/
 | 2.8 | Expired paste (manual `expiresAt` in past) | Seed a paste with `expiresAt: new Date(Date.now() - 1000)` then GET | `404` + `error: "Paste has expired"` |
 | 2.9 | Expired paste is deleted from DB | Same as 2.8 then query DB | Document no longer exists in MongoDB |
 | 2.10 | Response shape for text has no `fileName`/`mimeType` | `GET` text paste | Response does NOT include `fileName` or `mimeType` keys |
+| 2.11 | `?meta=1` for a file | `GET /api/paste/{id}?meta=1` | `200`, no `content`, has `fileName` and `fileSize` |
+| 2.12 | `/raw` for a file | `GET /api/paste/{id}/raw` (UTF-8 file name) | Original bytes; `Content-Type` from upload; `attachment` with `filename*=UTF-8''…`; `nosniff`; sandbox CSP |
+| 2.13 | `/raw` for a text paste | Text containing `<script>` | `200`, `text/plain`, body unchanged |
+| 2.14 | `/raw` for an unknown code | `GET /api/paste/0000/raw` | `404` |
 
 ---
 
@@ -88,6 +95,7 @@ backend/
 | 3.2 | Verify deleted — follow-up GET | After delete, `GET /api/paste/{id}` | `404` |
 | 3.3 | Delete non-existent ID | `DELETE /api/paste/9999` | `404` + `error: "Paste not found"` |
 | 3.4 | Invalid format | `DELETE /api/paste/abc` | `400` + `error: "Invalid paste ID format"` |
+| 3.5 | Another device tries to delete | `DELETE` with a different fingerprint | `404`; paste still fetchable |
 
 ---
 
@@ -101,8 +109,10 @@ backend/
 | 4.1 | **Burst — under limit** | 5 POSTs within 1 second, same fingerprint | All `201` |
 | 4.2 | **Burst — hit limit** | 6th POST within same minute, same fingerprint | `429` + `error` contains "short time" |
 | 4.3 | **Burst — different fingerprints** | 6 POSTs, each with unique `User-Agent` | All `201` (different fingerprints = independent counters) |
-| 4.4 | **GET not rate limited** | 100 GETs from same fingerprint | All pass through (no 429) |
-| 4.5 | **Hourly — hit limit** | 21 POSTs spread across hour window (mock `Date.now`) | 21st → `429` + `error` contains "Hourly" |
+| 4.4 | **Successful GETs not limited** | 100 GETs of an existing paste, same fingerprint | All `200` (only failed lookups count) |
+| 4.5 | **Hourly — hit limit** (skipped) | 21 POSTs spread across hour window (fake timers) | 21st → `429` + `error` contains "Hourly" |
+| 4.6 | **Wrong codes limited** | 31 GETs for a missing code, same fingerprint | First 30 → `404`, 31st → `429` ("wrong codes"); other fingerprint unaffected |
+| 4.7 | **IP is part of the fingerprint** | Same User-Agent from two `X-Forwarded-For` IPs | Second IP not blocked by the first IP's burst limit |
 
 > [!WARNING]
 > Test 4.5 (hourly) can't literally wait 1 hour. Strategy: use **`vi.useFakeTimers()`** in Vitest to advance the clock, OR reduce `RATE_LIMIT_WINDOW_MS` to `2000ms` for the test environment via an env override.
