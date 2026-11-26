@@ -46,3 +46,22 @@ clippy-cli.exe
 clippy-cli
 clippy-cli-linux
 clippy-cli-macos
+
+# Terraform (ops/terraform): state and variable files hold secrets.
+# The repo is public, so none of these may ever be committed.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfplan
+ops/terraform/.env
