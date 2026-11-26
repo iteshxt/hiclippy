@@ -81,7 +81,7 @@ Tests need a running MongoDB at `MONGO_URI` (from the environment or `backend/.e
 **Itesh Tomar**
 - [GitHub](https://github.com/iteshxt)
 - [Website](https://iteshxt.me)
-- [Email](mailto:iteshxt@gmail.com)
+- [Email](mailto:mail.iteshxt@gmail.com)
 
 ---
 

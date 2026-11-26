@@ -46,8 +46,8 @@ const linkify = (text) => {
     });
 };
 
-export function FetchCard() {
-    const [pasteId, setPasteId] = useState('');
+export function FetchCard({ initialCode = null, onInitialCodeUsed } = {}) {
+    const [pasteId, setPasteId] = useState(initialCode || '');
     const [loading, setLoading] = useState(false);
     const [paste, setPaste] = useState(null);
     const [error, setError] = useState(null);
@@ -60,8 +60,21 @@ export function FetchCard() {
         setCopied(false);
     };
 
-    const handleFetch = async (e) => {
+    const handleFetch = (e) => {
         e.preventDefault();
+        fetchCode(pasteId);
+    };
+
+    // A code from the URL (/share?code=1234) is fetched straight away.
+    useEffect(() => {
+        if (!initialCode) return;
+        setPasteId(initialCode);
+        fetchCode(initialCode);
+        onInitialCodeUsed?.();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialCode]);
+
+    const fetchCode = async (pasteId) => {
         if (!/^\d{4}$/.test(pasteId)) {
             setError('Paste ID must be exactly 4 digits');
             return;
