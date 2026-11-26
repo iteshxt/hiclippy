@@ -1,0 +1,31 @@
+# Copy to terraform.tfvars (gitignored) and fill in. Never commit the copy.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# Alternatively, export each one as TF_VAR_<name>, e.g.
+#   export TF_VAR_vercel_api_token=...
+
+# ── Credentials ─────────────────────────────────────────────────────
+vercel_api_token    = ""   # vercel.com/account/settings/tokens, scope: itesh-stuff team
+render_api_key      = ""   # dashboard.render.com > Account settings > API keys
+render_owner_id     = ""   # usr-... or tea-...; shown in Render's account/team settings
+hostinger_api_token = ""   # hPanel > Account > API
+
+# MongoDB Atlas: fill ONE pair. Service account (recommended):
+atlas_client_id     = ""
+atlas_client_secret = ""
+# ...or a programmatic API key (then delete the two lines above):
+# atlas_public_key  = ""
+# atlas_private_key = ""
+
+# ── IDs of what already exists ──────────────────────────────────────
+vercel_api_url_env_id = ""   # ID of VITE_API_URL: `vercel env ls` or GET /v10/projects/{id}/env
+render_service_id     = ""   # srv-... from the API service's URL in the Render dashboard
+atlas_project_id      = ""   # Atlas > Project settings > Project ID
+atlas_cluster_name    = ""   # the cluster's name as shown in Atlas
+
+# Already filled in with defaults (override only if they change):
+# vercel_team_id          = "team_71hOPKLrF2Gc7052QhN2nGTC"
+# vercel_project_id       = "prj_Ac8gAi8ZZ7mcyIQETr3HlFxpBDY6"
+# atlas_access_list_entry = "0.0.0.0/0"
+# dns_zone                = "hiclippy.online"
