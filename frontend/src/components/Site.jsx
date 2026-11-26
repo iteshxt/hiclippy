@@ -96,20 +96,105 @@ export function NatureBg({ variant }) {
     );
 }
 
-/* ── Animated mascot (looping WebM) ─────────────────────── */
+/* ── Animated mascot (looping WebM) ─────────────────────────
+   The native `loop` attribute seeks back to 0 at the end, and
+   browsers can hold the last frame while that seek resolves,
+   which shows up as a hitch in a 1.3s loop. Instead, two copies
+   take turns: one plays while the other waits, paused and already
+   decoded, on frame 0. When the playing copy presents its last
+   frame we schedule the swap for the moment that frame's time is
+   up; the waiting copy is shown and starts, and the other resets
+   to frame 0 for the next round. No seek ever happens at the
+   loop point. Without requestVideoFrameCallback we swap on
+   `ended` instead.
+────────────────────────────────────────────────────────────── */
+const MASCOT_SRC = '/images/tom.webm';
+
+function useSeamlessLoop(aRef, bRef) {
+    React.useEffect(() => {
+        const vids = [aRef.current, bRef.current];
+        if (!vids[0] || !vids[1]) return;
+        let active = 0;
+        let timer = null;
+        let stopped = false;
+        let frameDur = 1 / 22;   // refined from real frame timestamps
+        let lastMediaTime = null;
+
+        const show = (i) => {
+            vids[i].style.opacity = '1';
+            vids[1 - i].style.opacity = '0';
+        };
+
+        const swap = () => {
+            if (stopped) return;
+            clearTimeout(timer);
+            const prev = vids[active];
+            active = 1 - active;
+            const next = vids[active];
+            show(active);
+            next.play().catch(() => {});
+            prev.pause();
+            prev.currentTime = 0;   // decoded and waiting for its next turn
+            lastMediaTime = null;
+            watch(next);
+        };
+
+        const watch = (v) => {
+            if (typeof v.requestVideoFrameCallback !== 'function') return; // `ended` covers it
+            const onFrame = (_now, meta) => {
+                if (stopped || vids[active] !== v) return;
+                if (lastMediaTime !== null && meta.mediaTime > lastMediaTime) {
+                    frameDur = meta.mediaTime - lastMediaTime;
+                }
+                lastMediaTime = meta.mediaTime;
+                const remaining = v.duration - meta.mediaTime;
+                if (Number.isFinite(remaining) && remaining <= frameDur * 1.5) {
+                    // This is the last frame: swap exactly when its time is up.
+                    timer = setTimeout(swap, Math.max(0, remaining * 1000));
+                    return;
+                }
+                v.requestVideoFrameCallback(onFrame);
+            };
+            v.requestVideoFrameCallback(onFrame);
+        };
+
+        // Safety net: if a timer is late (background tab) or the API is
+        // missing, swap as soon as the active copy ends.
+        const onEnded = (e) => { if (e.target === vids[active]) swap(); };
+        vids.forEach((v) => v.addEventListener('ended', onEnded));
+
+        show(0);
+        watch(vids[0]);
+
+        return () => {
+            stopped = true;
+            clearTimeout(timer);
+            vids.forEach((v) => v.removeEventListener('ended', onEnded));
+        };
+    }, [aRef, bRef]);
+}
+
 export function Mascot({ className = 'mascot-wrapper' }) {
+    const aRef = React.useRef(null);
+    const bRef = React.useRef(null);
+    useSeamlessLoop(aRef, bRef);
+
+    const common = {
+        src: MASCOT_SRC,
+        muted: true,
+        playsInline: true,
+        preload: 'auto',
+        className: 'mascot-img',
+        'aria-hidden': 'true',
+        onContextMenu: (e) => e.preventDefault(),
+    };
+
     return (
         <div className={className}>
-            <video
-                src="/images/tom.webm"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="mascot-img"
-                aria-hidden="true"
-                onContextMenu={(e) => e.preventDefault()}
-            />
+            <div className="mascot-loop">
+                <video ref={aRef} autoPlay {...common} />
+                <video ref={bRef} {...common} className="mascot-img mascot-img--standby" style={{ opacity: 0 }} />
+            </div>
         </div>
     );
 }
