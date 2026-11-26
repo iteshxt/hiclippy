@@ -78,11 +78,13 @@ variable "render_service_id" {
 variable "atlas_project_id" {
   description = "MongoDB Atlas project ID (Project settings)."
   type        = string
+  default     = "69ce20b39f80fc9a8d322ef3" # project "clippy"
 }
 
 variable "atlas_cluster_name" {
-  description = "Name of the Atlas cluster the API uses (the part after @ and before .mongodb.net is the host; the name is shown in Atlas, e.g. clippy)."
+  description = "Name of the Atlas cluster the API uses, as shown on the Atlas Clusters page."
   type        = string
+  default     = "clippy" # free M0 tier, AWS, 1 region
 }
 
 variable "atlas_access_list_entry" {

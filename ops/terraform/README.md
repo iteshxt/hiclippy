@@ -30,11 +30,31 @@ still at 0.x. Pin it and read its changelog before upgrading.
 
 ## Setup
 
+Credentials live in the repo-root `.env.local` (gitignored on every
+branch) as `TF_VAR_<variable>` lines, which Terraform reads from the
+environment:
+
 ```bash
+# hiclippy/.env.local
+TF_VAR_vercel_api_token=...
+TF_VAR_render_api_key=...
+TF_VAR_render_owner_id=...
+TF_VAR_hostinger_api_token=...
+TF_VAR_atlas_client_id=...
+TF_VAR_atlas_client_secret=...
+TF_VAR_render_service_id=srv-...
+TF_VAR_vercel_api_url_env_id=...
+```
+
+Load it into the shell, then run Terraform from this folder:
+
+```bash
+set -a; . ./.env.local; set +a   # from the repo root
 cd ops/terraform
-cp terraform.tfvars.example terraform.tfvars   # then fill it in
 terraform init
 ```
+
+A gitignored `terraform.tfvars` works too (see `terraform.tfvars.example`).
 
 Tokens needed (create them with the least access that works):
 

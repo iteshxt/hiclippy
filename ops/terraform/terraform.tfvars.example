@@ -21,11 +21,11 @@ atlas_client_secret = ""
 # ── IDs of what already exists ──────────────────────────────────────
 vercel_api_url_env_id = ""   # ID of VITE_API_URL: `vercel env ls` or GET /v10/projects/{id}/env
 render_service_id     = ""   # srv-... from the API service's URL in the Render dashboard
-atlas_project_id      = ""   # Atlas > Project settings > Project ID
-atlas_cluster_name    = ""   # the cluster's name as shown in Atlas
 
 # Already filled in with defaults (override only if they change):
 # vercel_team_id          = "team_71hOPKLrF2Gc7052QhN2nGTC"
 # vercel_project_id       = "prj_Ac8gAi8ZZ7mcyIQETr3HlFxpBDY6"
+# atlas_project_id        = "69ce20b39f80fc9a8d322ef3"
+# atlas_cluster_name      = "clippy"
 # atlas_access_list_entry = "0.0.0.0/0"
 # dns_zone                = "hiclippy.online"
