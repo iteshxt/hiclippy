@@ -111,3 +111,17 @@ variable "atlas_org_id" {
   type        = string
   default     = "66078bee261107672ae79780" # Itesh's Org
 }
+
+# ── Monitoring (nagios.tf) ──────────────────────────────────────────
+
+variable "nagios_container" {
+  description = "Name of the running Nagios container to validate and reload after the config changes."
+  type        = string
+  default     = "hiclippy-nagios"
+}
+
+variable "nagios_reload" {
+  description = "Validate and reload the running Nagios container when its config changes. Set false to only write the file."
+  type        = bool
+  default     = true
+}
