@@ -1,5 +1,10 @@
 terraform {
-  required_version = ">= 1.6.0"
+  required_version = ">= 1.7.0" # import blocks with for_each
+
+  # State stays on this laptop, outside every repo and worktree, so it can
+  # never be committed. The path is given at init time (see README):
+  #   terraform init -backend-config="path=$HOME/.local/share/hiclippy-terraform/terraform.tfstate"
+  backend "local" {}
 
   required_providers {
     vercel = {

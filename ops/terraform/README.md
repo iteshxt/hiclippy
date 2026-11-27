@@ -25,8 +25,8 @@ still at 0.x. Pin it and read its changelog before upgrading.
    change has been reviewed.
 3. **DNS records are replaced, not edited.** Hostinger deletes and recreates
    a record on any change, which takes the site offline for a while.
-4. State stays local (gitignored) for now. If it moves, it moves to a
-   private remote backend, never into git.
+4. State stays on the laptop, outside the repo (see Setup). If it moves,
+   it moves to a private remote backend, never into git.
 
 ## Setup
 
@@ -50,8 +50,12 @@ Load it into the shell, then run Terraform from this folder:
 ```bash
 set -a; . ./.env.local; set +a   # from the repo root
 cd ops/terraform
-terraform init
+terraform init -backend-config="path=$HOME/.local/share/hiclippy-terraform/terraform.tfstate"
 ```
+
+The state file lives in `~/.local/share/hiclippy-terraform/`, outside
+every checkout, so it can never be committed and survives deleting a
+worktree. Keep a backup of it: losing it means re-importing.
 
 A gitignored `terraform.tfvars` works too (see `terraform.tfvars.example`).
 
@@ -61,6 +65,9 @@ Tokens needed (create them with the least access that works):
 - **Render:** an API key, plus the owner ID (`usr-…` or `tea-…`).
 - **MongoDB Atlas:** a service account (or API key) with *Project Read Only*
   on the HiClippy project. Read-only is enough for importing and planning.
+  The laptop's IP changes, so the account's API access list allows the
+  ISP range `49.156.0.0/16` (Atlas refuses `0.0.0.0/0` there). If `plan`
+  fails with `IP_ADDRESS_NOT_ON_ACCESS_LIST`, add the current IP.
 - **Hostinger:** an API token from hPanel.
 
 ## Phase 1: import without changing anything
@@ -72,14 +79,16 @@ each one to its live counterpart. Check the match:
 terraform plan
 ```
 
-Expected today: **Plan: 11 to import, 0 to add, 0 to change, 0 to destroy.**
-Any "to change" or "to destroy" means the code and the live setup differ;
-fix the code, never the other way round in this phase.
+**Done on 2026-11-27.** All 11 resources were imported with one
+`terraform apply` of a saved plan that contained imports only ("11
+imported, 0 added, 0 changed, 0 destroyed"), and `terraform plan` now
+reports:
 
-Recording the imports in state takes one `terraform apply`. With 0 to
-change it only writes the local state file; nothing in production
-changes. After that, `terraform plan` must say *No changes*: that is the
-end of Phase 1.
+> No changes. Your infrastructure matches the configuration.
+
+From here, `terraform plan` is the drift check: anything changed by hand
+in a dashboard shows up as a difference. Any "to change" or "to destroy"
+means code and production differ; investigate before applying anything.
 
 ### What Terraform does not manage
 
