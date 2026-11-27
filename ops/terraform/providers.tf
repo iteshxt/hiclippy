@@ -5,7 +5,9 @@
 
 provider "vercel" {
   api_token = var.vercel_api_token
-  team      = var.vercel_team_id
+  # No `team` here: the token can read the project but not the team
+  # itself (team_unauthorized), and setting `team` makes the provider read
+  # the team first. The team ID is passed in each import and resource.
 }
 
 provider "render" {
