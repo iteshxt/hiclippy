@@ -5,7 +5,12 @@ name: hiclippy-nagios
 
 services:
   nagios:
-    build: .
+    build:
+      context: .
+      # The login page uses the site's own logo and mascot, taken straight
+      # from frontend/public so there is one copy of each.
+      additional_contexts:
+        site: ../../frontend/public
     image: hiclippy-nagios:4.5.14
     container_name: hiclippy-nagios
     ports:
@@ -13,6 +18,7 @@ services:
       - "127.0.0.1:8080:80"
     environment:
       TZ: Asia/Kolkata
+      NAGIOS_ADMIN_USER: ${NAGIOS_ADMIN_USER:-nagiosadmin}
       NAGIOS_ADMIN_PASSWORD: ${NAGIOS_ADMIN_PASSWORD:?set NAGIOS_ADMIN_PASSWORD in the repo-root .env.local}
     volumes:
       # Check history, comments, downtime and logs survive restarts.

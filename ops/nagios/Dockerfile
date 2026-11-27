@@ -56,6 +56,9 @@ RUN a2enmod cgi rewrite auth_form session session_cookie session_crypto request 
     && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 COPY web/nagios-apache.conf /etc/apache2/sites-enabled/nagios.conf
 COPY web/login.html /var/www/html/login.html
+COPY --from=site images/tom.webm /var/www/html/assets/mascot.webm
+COPY --from=site apple-touch-icon.png /var/www/html/assets/logo.png
+COPY --from=site favicon-96x96.png /var/www/html/favicon.png
 
 # HiClippy config: hosts, services, commands, contacts, and the custom
 # round-trip plugin. The stock example (monitoring the container itself)

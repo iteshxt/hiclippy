@@ -7,9 +7,20 @@ if [ -z "${NAGIOS_ADMIN_PASSWORD:-}" ]; then
     exit 1
 fi
 
-# Login for the web interface (user: nagiosadmin), rebuilt on every start
-# so the password always matches .env.local.
-htpasswd -b -c /usr/local/nagios/etc/htpasswd.users nagiosadmin "$NAGIOS_ADMIN_PASSWORD" >/dev/null 2>&1
+NAGIOS_ADMIN_USER="${NAGIOS_ADMIN_USER:-nagiosadmin}"
+case "$NAGIOS_ADMIN_USER" in
+    *[!A-Za-z0-9._-]* | "")
+        echo "NAGIOS_ADMIN_USER may only contain letters, digits, '.', '_' and '-'." >&2
+        exit 1 ;;
+esac
+
+# Login for the web interface, rebuilt on every start so the username and
+# password always match .env.local.
+htpasswd -b -c /usr/local/nagios/etc/htpasswd.users "$NAGIOS_ADMIN_USER" "$NAGIOS_ADMIN_PASSWORD" >/dev/null 2>&1
+
+# Nagios checks the logged-in name again for every page and command
+# (cgi.cfg "authorized_for_*"), so give that same user full access.
+sed -i -E "s/^(authorized_for_[a-z_]+)=.*/\1=${NAGIOS_ADMIN_USER}/" /usr/local/nagios/etc/cgi.cfg
 
 # Alerts are appended here; the folder is mounted from the host so a
 # desktop notifier (watch-alerts.sh) can follow it.
