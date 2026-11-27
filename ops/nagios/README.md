@@ -40,6 +40,54 @@ Desktop notifications for alerts (optional, in a second terminal):
 Stop with `docker compose down`. Check history, comments and scheduled
 downtime are kept in the `nagios_var` volume and survive restarts.
 
+## The web interface
+
+After signing in you land on the **HiClippy dashboard** (`/nagios/hiclippy/`),
+with the classic Nagios menu on the left. Every Nagios screen is still there,
+restyled in HiClippy's colours.
+
+### HiClippy dashboard
+
+A custom page built on Nagios's own JSON feeds (`statusjson.cgi`,
+`objectjson.cgi`, `archivejson.cgi`), refreshed every 30 seconds:
+
+- **Overall status:** *All systems operational*, *Degraded* (a warning, or a
+  check that is failing but still retrying) or *Outage* (a hard critical).
+  Acknowledged problems and checks in downtime don't count.
+- **Summary:** hosts up, checks OK, open problems, and how many are
+  acknowledged or in downtime. Each number opens the matching Nagios screen.
+- **Checks grouped by what they protect** (Website, API, DNS, Certificates),
+  each with its status, response time, certificate days left with a meter,
+  the DNS answer, when it last ran and runs next, the attempt count
+  (*Retrying 2/3 (soft)* while Nagios is confirming a failure), and
+  *Acknowledged*, *In downtime* or *Flapping* badges.
+- **Re-check** runs a check immediately. It uses Nagios's own command form
+  (`cmd.cgi`) including its one-time `nagFormId` token, exactly like the
+  Commit button in the classic screen.
+- **Details** opens the classic service page, where you **acknowledge** a
+  problem, **schedule downtime** or **add a comment**.
+- **Alerts in the last 24 hours**, soft and hard, with a link to the full
+  history.
+- **Links to every Nagios screen** the project uses (below) and whether
+  Nagios itself is running checks and sending notifications.
+
+### Classic Nagios screens (all kept)
+
+| Area | Screens |
+| --- | --- |
+| Live status | Tactical Overview, Services, Hosts, host/service groups (overview, summary, grid), Unhandled problems, Network map, Outages |
+| Reports | Availability, Trends, Alert history, Alert summary, Alert histogram, Notifications, Event log |
+| Operations | Comments, Scheduled downtime, Scheduling queue, Process info, Performance info, Configuration |
+| Per check | Details page with Acknowledge, Schedule downtime, Add comment, Re-schedule check, Disable checks or notifications |
+
+`web/ui/brand-ui.py` applies the look at build time: it maps Nagios's
+status colours (documented at the top of its `common.css`) to HiClippy's
+palette, appends `web/ui/theme.css` to every stylesheet, puts the HiClippy
+brand, a Dashboard link and *Sign out* in the menu, and replaces the
+splash page (an advert for the commercial edition) with the dashboard. It
+checks each change applies and fails the build if a future Nagios release
+changes its pages.
+
 ## What it checks
 
 | Host | Check | Every | Passes when |
@@ -125,6 +173,8 @@ Thu Nov 27 18:40:00 IST 2026 | API health on clippy-api.onrender.com is CRITICAL
 | `Dockerfile` | Downloads, verifies (SHA-256) and compiles Nagios and the plugins |
 | `entrypoint.sh` | Sets the web login and session key, prepares folders, starts Apache and Nagios |
 | `web/nagios-apache.conf` | Apache config: form login, session cookie, logout, `/` to the dashboard |
+| `web/ui/brand-ui.py`, `web/ui/theme.css` | Restyle the classic screens and menu at build time |
+| `web/dashboard/` | The HiClippy dashboard (HTML, CSS, JS on Nagios's JSON feeds) |
 | `web/login.html` | The login page, using the site's logo and mascot (copied from `frontend/public` at build time) |
 | `etc/hiclippy.cfg` | Hosts, services, commands, contacts, soft/hard thresholds |
 | `plugins/check_hiclippy_roundtrip.py` | The custom share-and-retrieve check |

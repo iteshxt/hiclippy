@@ -60,6 +60,12 @@ COPY --from=site images/tom.webm /var/www/html/assets/mascot.webm
 COPY --from=site apple-touch-icon.png /var/www/html/assets/logo.png
 COPY --from=site favicon-96x96.png /var/www/html/favicon.png
 
+# HiClippy look for the classic Nagios screens (every screen is kept), and
+# the custom dashboard at /nagios/hiclippy/, which becomes the home page.
+COPY web/ui/ /tmp/hiclippy-ui/
+RUN python3 /tmp/hiclippy-ui/brand-ui.py && rm -rf /tmp/hiclippy-ui
+COPY web/dashboard/ share/hiclippy/
+
 # HiClippy config: hosts, services, commands, contacts, and the custom
 # round-trip plugin. The stock example (monitoring the container itself)
 # is left out so the dashboard only shows HiClippy.

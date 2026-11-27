@@ -1,0 +1,100 @@
+
+/* ── HiClippy theme for Nagios Core ─────────────────────────────────────────
+   Appended to every Nagios stylesheet at image build time (brand-ui.py), so
+   it loads last on every screen. Status colours themselves are remapped in
+   place by brand-ui.py; this file handles type, layout and the side menu.
+   ────────────────────────────────────────────────────────────────────────── */
+
+/* Side menu: dark forest green, like the site's footer */
+:root {
+  --background: #0d1f17;
+  --foreground: #ffffff;
+  --primary: #4cc38a;
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #cfe7da;
+  --muted-foreground: #8fb8a2;
+  --border: #24463a;
+  --input: #163a29;
+  --radius: 10px;
+}
+
+html#side body.navbar {
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--background);
+}
+html#side ul.navsectionlinks li a,
+html#side ul.navsectionlinks li { font-size: 13px; }
+html#side ul.navsectionlinks li ul li a { font-size: 12.5px; }
+html#side div.navsectiontitle {
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+html#side ul.navsectionlinks li a:hover { color: var(--primary); text-decoration: none; }
+html#side .navbarsearch input:focus { border-color: var(--primary); }
+
+.hc-brand {
+  display: flex; align-items: center; gap: 2px;
+  color: #ffffff !important; text-decoration: none !important;
+}
+.hc-brand video { width: 46px; height: 46px; object-fit: contain; margin-left: -8px; flex-shrink: 0; }
+.hc-brand span { font-size: 23px; font-weight: 900; letter-spacing: -0.04em; color: #4cc38a; }
+.hc-sub { margin: 2px 0 0 2px; font-size: 11.5px; color: var(--muted-foreground); }
+.hc-sub b { color: #cfe7da; font-weight: 600; }
+a.hc-primary-link { color: #4cc38a !important; font-weight: 700 !important; }
+
+/* Content screens (every CGI page): light, like the site */
+html:not(#side) body {
+  margin: 16px 20px 40px;
+  background: #f6fbf8;
+  color: #0d1f17;
+  font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 10pt;
+}
+html:not(#side) a { color: #147a4c; }
+html:not(#side) a:hover { color: #1b9e62; }
+
+.pageTitle, .statusTitle, .dataTitle, .infoBoxTitle, .cmdType, .reportTitle, .errorMessage {
+  color: #0d1f17;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.pageTitle, .statusTitle, .dataTitle { font-size: 15px; }
+
+table.infoBox {
+  background: #ffffff;
+  border: 1px solid #d8ede4 !important;
+  border-radius: 12px;
+  padding: 6px 10px;
+}
+table.linkBox td, .linkBox a { font-size: 9pt; }
+
+th.status, th.data, th.notifications, th.logEntries, th.comment, th.downtime,
+th.queue, th.extinfo, th.summary, th.avail, th.outages, th.trends {
+  font-weight: 700;
+  color: #0d1f17;
+}
+
+/* Form controls */
+html:not(#side) input[type=submit],
+html:not(#side) input[type=button],
+html:not(#side) button {
+  background: #1b9e62; color: #ffffff; border: 0; border-radius: 8px;
+  padding: 5px 12px; font: inherit; font-weight: 700; cursor: pointer;
+}
+html:not(#side) input[type=submit]:hover,
+html:not(#side) input[type=button]:hover,
+html:not(#side) button:hover { background: #147a4c; }
+html:not(#side) input[type=reset] {
+  background: #ffffff; color: #147a4c; border: 1px solid #c9e3d6; border-radius: 8px;
+  padding: 5px 12px; font: inherit; cursor: pointer;
+}
+html:not(#side) input[type=text],
+html:not(#side) input[type=password],
+html:not(#side) select,
+html:not(#side) textarea {
+  border: 1px solid #c9e3d6; border-radius: 8px; padding: 4px 6px;
+  background: #ffffff; color: #0d1f17; font: inherit;
+}
+html:not(#side) input:focus, html:not(#side) select:focus, html:not(#side) textarea:focus {
+  outline: 2px solid #4cc38a; outline-offset: 1px;
+}
