@@ -73,7 +73,10 @@ Tests need a running MongoDB at `MONGO_URI` (from the environment or `backend/.e
 | `PASTE_MAX_EXPIRY_MINUTES` | `1440` | Highest expiry the API accepts |
 | `LOOKUP_LIMIT_WINDOW_MS` | `600000` | Window for counting wrong codes |
 | `LOOKUP_LIMIT_MAX_FAILURES` | `30` | Wrong codes allowed per window per fingerprint |
-| `TRUST_PROXY` | `1` | Express `trust proxy` setting: number of proxy hops in front of the API (1 for Render or the bundled nginx) |
+| `TRUST_PROXY` | `1` | Express `trust proxy` setting: number of proxy hops in front of the API (1 for the bundled nginx) |
+| `CLIENT_IP_HEADER` | none | Header set by the proxy in front of the API that holds the visitor's IP, used for the device fingerprint instead of `req.ip`. **On Render set `cf-connecting-ip`.** Leave unset anywhere a client could reach the API without going through that proxy (local dev, Docker), or clients could fake their IP |
+
+**Why Render needs `CLIENT_IP_HEADER`:** requests reach the API through Cloudflare and then Render's proxy. With `TRUST_PROXY=1`, `req.ip` is the Cloudflare edge address that connected to Render. That address changes from time to time and many visitors share it. So the device fingerprint changes: a clip's owner sometimes gets a 404 when deleting it, and rate limits apply per edge rather than per visitor. Cloudflare puts the visitor's IP in `CF-Connecting-IP`. If a client sends that header itself, Cloudflare refuses the request with a 403, so the value can't be faked. Don't use `True-Client-IP`: a client-sent value gets through to the API.
 
 ---
 

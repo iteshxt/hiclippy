@@ -8,9 +8,10 @@ dotenv.config();
 
 const app = express();
 
-// Behind Render's proxy or the bundled nginx there is one proxy hop, so
-// trust exactly one X-Forwarded-For entry to get the real client IP.
-// Trusting more would let clients spoof their IP to dodge rate limits.
+// Behind the bundled nginx there is one proxy hop, so trust exactly one
+// X-Forwarded-For entry to get the real client IP. Trusting more would
+// let clients spoof their IP to dodge rate limits. On Render (Cloudflare
+// + Render's proxy) set CLIENT_IP_HEADER instead; see fingerprint.js.
 const trustProxy = process.env.TRUST_PROXY ?? '1';
 app.set('trust proxy', /^\d+$/.test(trustProxy) ? parseInt(trustProxy) : trustProxy);
 

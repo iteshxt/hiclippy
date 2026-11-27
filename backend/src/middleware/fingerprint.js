@@ -1,15 +1,40 @@
 import crypto from 'crypto';
+import net from 'net';
 import rateLimit from 'express-rate-limit';
+
+/* ── Client IP ──────────────────────────────────────────────
+   On Render the API sits behind Cloudflare, then Render's proxy.
+   req.ip (trust proxy = 1) is then the Cloudflare edge that
+   opened the connection to Render, which changes from time to
+   time and is shared by everyone using that edge.
+
+   CLIENT_IP_HEADER names a header set by the proxy in front of
+   the API that holds the visitor's IP. On Render that is
+   `cf-connecting-ip`: Cloudflare sets it on every request and
+   refuses (403) requests from clients that send it themselves.
+   Only set it where such a proxy is guaranteed to be in front;
+   anywhere else a client could write any IP into that header.
+   Unset (the default) → req.ip, governed by TRUST_PROXY.
+────────────────────────────────────────────────────────────── */
+export function getClientIp(req) {
+  const header = process.env.CLIENT_IP_HEADER?.trim();
+  if (header) {
+    const value = req.get(header)?.trim();
+    // Exactly one valid IP; anything else (missing, a list, junk)
+    // falls back to req.ip rather than trusting part of it.
+    if (value && net.isIP(value)) return value;
+  }
+  return req.ip;
+}
 
 /* ── Fingerprint ────────────────────────────────────────────
    16-char hex ID from client IP + User-Agent + Accept-Language.
    Anonymous but consistent per device/browser/network. The IP
    keeps everyone on the same browser version and language from
-   sharing one rate-limit bucket. req.ip is only the real client
-   IP when `trust proxy` is set correctly (see app.js).
+   sharing one rate-limit bucket.
 ────────────────────────────────────────────────────────────── */
 export function generateFingerprint(req) {
-  const ip         = req.ip                           || 'unknown';
+  const ip         = getClientIp(req)                 || 'unknown';
   const userAgent  = req.get('user-agent')            || 'unknown';
   const acceptLang = req.get('accept-language')       || 'unknown';
   return crypto.createHash('sha256').update(`${ip}|${userAgent}|${acceptLang}`).digest('hex').substring(0, 16);

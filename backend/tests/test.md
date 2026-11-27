@@ -119,6 +119,18 @@ backend/
 
 ---
 
+### 6. Client IP behind Cloudflare (`clientip.test.js`)
+
+`X-Forwarded-For` stands in for the Cloudflare edge address (what `req.ip` becomes on Render with `TRUST_PROXY=1`); `CF-Connecting-IP` holds the visitor's IP.
+
+| # | Test | Input | Expected |
+|---|---|---|---|
+| 6.1 | **Edge changes, visitor doesn't** | `CLIENT_IP_HEADER=cf-connecting-ip`; save via edge A, delete via edge B, same `CF-Connecting-IP` | Delete → `200` |
+| 6.2 | **Visitors on one edge are separate** | Same setting; 6 saves from one visitor, then one from another visitor on the same edge | 6th → `429`, other visitor → `201` |
+| 6.3 | **Bad header falls back** | `getClientIp` with header missing, a list, or junk | Returns `req.ip`; a single IPv4/IPv6 value is used as-is |
+| 6.4 | **Spoofed header ignored when unset** | No `CLIENT_IP_HEADER`; 6 saves with a different `CF-Connecting-IP` each time | 6th → `429` |
+| 6.5 | **Spoofed header can't take over a clip** | No `CLIENT_IP_HEADER`; delete from another IP claiming the owner's IP in `CF-Connecting-IP` | `404` |
+
 ### 5. Health Check
 
 | # | Test | Expected |
