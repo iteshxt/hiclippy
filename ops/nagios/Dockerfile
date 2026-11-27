@@ -49,10 +49,13 @@ RUN wget -q -O plugins.tar.gz \
 
 WORKDIR /usr/local/nagios
 
-# Web interface: CGI scripts and URL rewriting for the Nagios UI.
-RUN a2enmod cgi rewrite >/dev/null \
-    && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
-    && echo "RedirectMatch ^/$ /nagios/" > /etc/apache2/conf-enabled/nagios-root.conf
+# Web interface: CGI scripts, URL rewriting, and a form login page with an
+# encrypted session cookie (see web/nagios-apache.conf for why not Basic
+# auth). The stock Basic-auth site config is replaced.
+RUN a2enmod cgi rewrite auth_form session session_cookie session_crypto request >/dev/null \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+COPY web/nagios-apache.conf /etc/apache2/sites-enabled/nagios.conf
+COPY web/login.html /var/www/html/login.html
 
 # HiClippy config: hosts, services, commands, contacts, and the custom
 # round-trip plugin. The stock example (monitoring the container itself)

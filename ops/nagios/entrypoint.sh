@@ -24,6 +24,11 @@ chown -R nagios:nagios /usr/local/nagios/var
 chown nagios:nagios /usr/local/nagios/var/rw
 chmod 2775 /usr/local/nagios/var/rw
 
+# Key that encrypts the login cookie. New on every start, so restarting the
+# container signs everyone out; nothing to store or leak.
+NAGIOS_SESSION_SECRET="$(head -c 32 /dev/urandom | base64 | tr -d '\n')"
+export NAGIOS_SESSION_SECRET
+
 apachectl start
 
 # Nagios runs in the foreground as PID 1, so `docker stop` stops it cleanly.

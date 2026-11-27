@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in – HiClippy monitoring</title>
+<style>
+  :root { --green: #1b9e62; --forest: #0d1f17; --mint: #eaf6f0; --border: #d8ede4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px;
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+         background: linear-gradient(#fff, #c8ebd8); color: var(--forest); }
+  form { width: 100%; max-width: 360px; background: #fff; border: 1.5px solid var(--border);
+         border-radius: 20px; padding: 28px; box-shadow: 0 8px 40px rgba(27,158,98,.12); }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p.sub { margin: 0 0 22px; color: #3d6b52; font-size: 14px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 14px 0 6px; }
+  input { width: 100%; padding: 11px 12px; font: inherit; border: 1.5px solid var(--border);
+          border-radius: 10px; background: #f5fbf8; }
+  input:focus { outline: 3px solid var(--green); outline-offset: 1px; }
+  button { width: 100%; margin-top: 22px; padding: 12px; font: inherit; font-weight: 700;
+           color: #fff; background: var(--green); border: 0; border-radius: 10px; cursor: pointer; }
+  button:hover { background: #147a4c; }
+  .msg { display: none; margin: 0 0 4px; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+  .msg.error { background: #fdecec; color: #8a1f1f; }
+  .msg.info { background: var(--mint); color: #147a4c; }
+</style>
+</head>
+<body>
+<form method="post" action="/dologin">
+  <h1>HiClippy monitoring</h1>
+  <p class="sub">Nagios dashboard. Sign in to continue.</p>
+  <p class="msg error" id="failed">That username or password is wrong. Try again.</p>
+  <p class="msg info" id="loggedout">You are signed out.</p>
+  <label for="u">Username</label>
+  <input id="u" name="httpd_username" value="nagiosadmin" autocomplete="username" required>
+  <label for="p">Password</label>
+  <input id="p" name="httpd_password" type="password" autocomplete="current-password" required autofocus>
+  <button type="submit">Sign in</button>
+</form>
+<script>
+  var q = new URLSearchParams(location.search);
+  if (q.has('failed')) document.getElementById('failed').style.display = 'block';
+  if (q.has('loggedout')) document.getElementById('loggedout').style.display = 'block';
+</script>
+</body>
+</html>

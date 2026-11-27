@@ -11,9 +11,17 @@ cd ops/nagios
 docker compose --env-file ../../.env.local up -d --build
 ```
 
-Open **http://localhost:8080/nagios** and log in as `nagiosadmin` with
-the `NAGIOS_ADMIN_PASSWORD` from the repo-root `.env.local`. The port is
-bound to `127.0.0.1`, so only this laptop can reach it.
+Open **http://localhost:8080** and sign in on the login page as
+`nagiosadmin` with the `NAGIOS_ADMIN_PASSWORD` from the repo-root
+`.env.local`. Sign out at http://localhost:8080/logout. The port is bound
+to `127.0.0.1`, so only this laptop can reach it.
+
+The stock Nagios setup uses the browser's HTTP Basic-auth popup, which
+browsers now often refuse to show on plain `http://` (you just get "401
+Unauthorized"). This image uses a normal login form instead (Apache
+`mod_auth_form`, same password file) with an encrypted, HttpOnly session
+cookie; its key is regenerated on every container start, which signs
+everyone out.
 
 Desktop notifications for alerts (optional, in a second terminal):
 
@@ -107,7 +115,9 @@ Thu Nov 27 18:40:00 IST 2026 | API health on clippy-api.onrender.com is CRITICAL
 | File | Purpose |
 | --- | --- |
 | `Dockerfile` | Downloads, verifies (SHA-256) and compiles Nagios and the plugins |
-| `entrypoint.sh` | Sets the web login, prepares folders, starts Apache and Nagios |
+| `entrypoint.sh` | Sets the web login and session key, prepares folders, starts Apache and Nagios |
+| `web/nagios-apache.conf` | Apache config: form login, session cookie, logout, `/` to the dashboard |
+| `web/login.html` | The login page |
 | `etc/hiclippy.cfg` | Hosts, services, commands, contacts, soft/hard thresholds |
 | `plugins/check_hiclippy_roundtrip.py` | The custom share-and-retrieve check |
 | `docker-compose.yml` | Runs the container on 127.0.0.1:8080 |
