@@ -30,3 +30,8 @@ output "database_cluster_state" {
   description = "Atlas cluster state; IDLE means healthy."
   value       = module.atlas.cluster_state
 }
+
+output "nagios_config_file" {
+  description = "The Nagios config Terraform generates from these outputs."
+  value       = abspath(local_file.nagios_config.filename)
+}

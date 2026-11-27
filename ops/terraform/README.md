@@ -106,13 +106,38 @@ means code and production differ; investigate before applying anything.
 - DNS records are defined once in `main.tf` (`local.dns_records`) and used
   by both the module and its imports, so the two can't drift apart.
 
+## Phase 3: the infrastructure drives the monitoring
+
+`nagios.tf` renders `ops/nagios/etc/hiclippy.cfg` from
+`templates/nagios-hiclippy.cfg.tftpl`, filling it with Terraform's own
+values: the `www` domain, the bare domain and its redirect, the API URL
+read from the Render service, and every DNS record listed in
+`local.dns_check_names` (with the exact value Terraform manages for it).
+After writing the file it runs `ops/nagios/reload.sh`, which validates the
+config inside the running container (`nagios -v`) and reloads Nagios with
+SIGHUP: no downtime, history kept. An invalid config fails the apply and
+Nagios keeps the previous one.
+
+So changing a domain or a DNS record here, then one `terraform apply`,
+updates the infrastructure and its monitoring together.
+
+Example: adding `google_verification = "DNS Google verification TXT"` to
+`local.dns_check_names` makes `terraform plan` show a new Nagios service
+checking that TXT record. The plan reads "2 to add, 2 to destroy": that is
+only the local config file and the reload step being rebuilt, not
+infrastructure.
+
+Set `nagios_reload = false` to only write the file (for example when
+Nagios runs elsewhere).
+
 ## Files
 
 | Path | Purpose |
 | --- | --- |
 | `main.tf` | Calls the four modules with today's real settings |
 | `imports.tf` | Maps each module resource to its live counterpart |
-| `outputs.tf` | Site, API and health URLs, DNS records, database state (for Nagios) |
+| `outputs.tf` | Site, API and health URLs, DNS records, database state, generated Nagios file |
+| `nagios.tf`, `templates/` | Phase 3: generate the Nagios config and reload Nagios |
 | `variables.tf` | Credentials (sensitive) and IDs of live resources |
 | `providers.tf` / `versions.tf` | Provider settings and version pins |
 | `modules/vercel` | Project, `www` and apex domains, `VITE_API_URL` |

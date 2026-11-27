@@ -23,5 +23,9 @@ terraform {
       source  = "hostinger/hostinger"
       version = "~> 0.1.23"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.9"
+    }
   }
 }
