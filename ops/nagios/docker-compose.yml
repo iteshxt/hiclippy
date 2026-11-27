@@ -1,0 +1,25 @@
+# Run from ops/nagios:
+#   docker compose --env-file ../../.env.local up -d --build
+# Web interface: http://localhost:8080/nagios  (user nagiosadmin)
+name: hiclippy-nagios
+
+services:
+  nagios:
+    build: .
+    image: hiclippy-nagios:4.5.14
+    container_name: hiclippy-nagios
+    ports:
+      # Only reachable from this laptop, never from the network.
+      - "127.0.0.1:8080:80"
+    environment:
+      TZ: Asia/Kolkata
+      NAGIOS_ADMIN_PASSWORD: ${NAGIOS_ADMIN_PASSWORD:?set NAGIOS_ADMIN_PASSWORD in the repo-root .env.local}
+    volumes:
+      # Check history, comments, downtime and logs survive restarts.
+      - nagios_var:/usr/local/nagios/var
+      # Alerts land in ./alerts/alerts.log (followed by watch-alerts.sh).
+      - ./alerts:/var/log/hiclippy-alerts
+    restart: unless-stopped
+
+volumes:
+  nagios_var:
