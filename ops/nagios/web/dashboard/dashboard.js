@@ -166,7 +166,7 @@
     $('overall-text').textContent = mood === 'ok'
       ? 'All systems operational'
       : mood === 'crit' ? 'Outage: ' + problems + ' problem' + (problems === 1 ? '' : 's')
-      : 'Degraded: ' + Math.max(problems, 1) + ' check' + (problems === 1 ? '' : 's') + ' need attention';
+      : 'Degraded: ' + Math.max(problems, 1) + (Math.max(problems, 1) === 1 ? ' check needs' : ' checks need') + ' attention';
 
     // Hosts
     $('hosts').innerHTML = hosts.map(function (h) {
