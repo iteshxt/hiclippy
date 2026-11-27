@@ -12,10 +12,10 @@
 # IDs that are already known are filled in. The rest come from
 # terraform.tfvars (see terraform.tfvars.example).
 
-# ── Vercel: frontend (project "clippy") ─────────────────────────────
+# ── Vercel: frontend (project "hiclippy", team temp-stuff) ──────────
 
 import {
-  to = vercel_project.clippy
+  to = vercel_project.hiclippy
   identity = {
     project_id = var.vercel_project_id
     team_id    = var.vercel_team_id
@@ -30,11 +30,6 @@ import {
 import {
   to = vercel_project_domain.apex
   id = "${var.vercel_team_id}/${var.vercel_project_id}/hiclippy.online"
-}
-
-import {
-  to = vercel_project_domain.vercel_app
-  id = "${var.vercel_team_id}/${var.vercel_project_id}/hiclippy.vercel.app"
 }
 
 import {

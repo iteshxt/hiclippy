@@ -1,7 +1,7 @@
 # ── Credentials (sensitive, no defaults) ────────────────────────────
 
 variable "vercel_api_token" {
-  description = "Vercel access token with access to the itesh-stuff team."
+  description = "Vercel access token with access to the temp-stuff team."
   type        = string
   sensitive   = true
 }
@@ -56,18 +56,19 @@ variable "hostinger_api_token" {
 variable "vercel_team_id" {
   description = "Vercel team that owns the project."
   type        = string
-  default     = "team_71hOPKLrF2Gc7052QhN2nGTC" # itesh-stuff
+  default     = "team_64Bb5CmqqHb7wMFLZgl8L5Nk" # temp-stuff
 }
 
 variable "vercel_project_id" {
   description = "Vercel project for the frontend."
   type        = string
-  default     = "prj_Ac8gAi8ZZ7mcyIQETr3HlFxpBDY6" # clippy
+  default     = "prj_c1IAqbI0ElkgeWFOOGlVpMdYZqki" # hiclippy
 }
 
 variable "vercel_api_url_env_id" {
-  description = "ID of the VITE_API_URL environment variable on the Vercel project. Find it with `vercel env ls` or the Vercel API (GET /v10/projects/{id}/env)."
+  description = "ID of the VITE_API_URL environment variable on the Vercel project (Vercel API: GET /v10/projects/{id}/env)."
   type        = string
+  default     = "uRptbPbgxzpzEtvM" # VITE_API_URL, production + preview
 }
 
 variable "render_service_id" {

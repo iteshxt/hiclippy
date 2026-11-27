@@ -7,7 +7,7 @@ the site from scratch. See `docs/plan-ops.md` for the full plan.
 
 | Service | Provider | Version | What is imported |
 | --- | --- | --- | --- |
-| Vercel | `vercel/vercel` (partner) | ~> 5.27 | project `clippy`, its 3 domains, `VITE_API_URL` |
+| Vercel | `vercel/vercel` (partner) | ~> 5.27 | project `hiclippy` (team `temp-stuff`), its 2 domains, `VITE_API_URL` |
 | Render | `render-oss/render` (partner) | ~> 1.9 | the API web service |
 | MongoDB Atlas | `mongodb/mongodbatlas` (partner) | ~> 2.22 | project, cluster, IP access list entry |
 | Hostinger | `hostinger/hostinger` (community) | ~> 0.1.23 | apex A, `www` CNAME, Google TXT record |
@@ -43,7 +43,6 @@ TF_VAR_hostinger_api_token=...
 TF_VAR_atlas_client_id=...
 TF_VAR_atlas_client_secret=...
 TF_VAR_render_service_id=srv-...
-TF_VAR_vercel_api_url_env_id=...
 ```
 
 Load it into the shell, then run Terraform from this folder:
@@ -58,7 +57,7 @@ A gitignored `terraform.tfvars` works too (see `terraform.tfvars.example`).
 
 Tokens needed (create them with the least access that works):
 
-- **Vercel:** an access token scoped to the `itesh-stuff` team.
+- **Vercel:** an access token scoped to the `temp-stuff` team.
 - **Render:** an API key, plus the owner ID (`usr-…` or `tea-…`).
 - **MongoDB Atlas:** a service account (or API key) with *Project Read Only*
   on the HiClippy project. Read-only is enough for importing and planning.
