@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>HiClippy status</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<main class="page">
+
+  <header class="top">
+    <div class="top-title">
+      <video class="mascot" src="/assets/mascot.webm" poster="/assets/logo.png" autoplay loop muted playsinline aria-hidden="true"></video>
+      <div>
+        <h1>HiClippy status</h1>
+        <p class="meta">
+          <span id="updated">Loading live status…</span>
+          <button type="button" class="link-btn" id="refresh">Refresh now</button>
+        </p>
+      </div>
+    </div>
+    <div class="overall is-pending" id="overall" role="status" aria-live="polite">
+      <span class="overall-dot" aria-hidden="true"></span>
+      <span id="overall-text">Checking…</span>
+    </div>
+  </header>
+
+  <p class="banner error" id="error" role="alert" hidden></p>
+
+  <section class="kpis" aria-label="Summary">
+    <a class="kpi" href="../cgi-bin/status.cgi?hostgroup=all&amp;style=hostdetail"><span class="kpi-label">Hosts up</span><span class="kpi-value" id="kpi-hosts">–</span></a>
+    <a class="kpi" href="../cgi-bin/status.cgi?host=all"><span class="kpi-label">Checks OK</span><span class="kpi-value" id="kpi-services">–</span></a>
+    <a class="kpi" href="../cgi-bin/status.cgi?host=all&amp;type=detail&amp;hoststatustypes=3&amp;serviceprops=10&amp;servicestatustypes=28"><span class="kpi-label">Open problems</span><span class="kpi-value" id="kpi-problems">–</span></a>
+    <a class="kpi" href="../cgi-bin/extinfo.cgi?type=6"><span class="kpi-label">Acknowledged or in downtime</span><span class="kpi-value" id="kpi-handled">–</span></a>
+  </section>
+
+  <section class="hosts" id="hosts" aria-label="Hosts"></section>
+
+  <section class="areas" id="areas" aria-label="Checks by area"></section>
+
+  <div class="lower">
+    <section class="panel" aria-labelledby="alerts-title">
+      <div class="panel-head">
+        <h2 id="alerts-title">Alerts in the last 24 hours</h2>
+        <a href="../cgi-bin/history.cgi?host=all">Full history</a>
+      </div>
+      <ol class="alerts" id="alerts"><li class="empty">Loading…</li></ol>
+    </section>
+
+    <section class="panel" aria-labelledby="tools-title">
+      <div class="panel-head">
+        <h2 id="tools-title">Nagios screens</h2>
+      </div>
+      <div class="tools">
+        <div>
+          <h3>Live status</h3>
+          <a href="../cgi-bin/tac.cgi">Tactical overview</a>
+          <a href="../cgi-bin/status.cgi?host=all">All services</a>
+          <a href="../cgi-bin/status.cgi?hostgroup=all&amp;style=hostdetail">All hosts</a>
+          <a href="../cgi-bin/status.cgi?host=all&amp;type=detail&amp;hoststatustypes=3&amp;serviceprops=10&amp;servicestatustypes=28">Unhandled problems</a>
+          <a href="../cgi-bin/statusmap.cgi?host=all">Network map</a>
+        </div>
+        <div>
+          <h3>Reports</h3>
+          <a href="../cgi-bin/avail.cgi">Availability</a>
+          <a href="../cgi-bin/trends.cgi">Trends</a>
+          <a href="../cgi-bin/history.cgi?host=all">Alert history</a>
+          <a href="../cgi-bin/summary.cgi">Alert summary</a>
+          <a href="../cgi-bin/notifications.cgi?contact=all">Notifications sent</a>
+          <a href="../cgi-bin/showlog.cgi">Event log</a>
+        </div>
+        <div>
+          <h3>Operations</h3>
+          <a href="../cgi-bin/extinfo.cgi?type=6">Scheduled downtime</a>
+          <a href="../cgi-bin/extinfo.cgi?type=3">Comments</a>
+          <a href="../cgi-bin/extinfo.cgi?type=7">Scheduling queue</a>
+          <a href="../cgi-bin/extinfo.cgi?type=0">Process info</a>
+          <a href="../cgi-bin/extinfo.cgi?type=4">Performance info</a>
+          <a href="../cgi-bin/config.cgi">Configuration</a>
+        </div>
+      </div>
+      <p class="tools-note">To acknowledge a problem, schedule downtime or add a comment, open a check's <b>Details</b>.</p>
+    </section>
+  </div>
+
+  <footer class="foot" id="foot"></footer>
+</main>
+<script src="dashboard.js"></script>
+</body>
+</html>

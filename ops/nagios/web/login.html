@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Sign in – HiClippy monitoring</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the site (frontend/src/index.css) */
+  :root {
+    --green: #1b9e62; --green-dark: #147a4c; --green-light: #d4efe2; --green-pill: #e2f5eb;
+    --forest: #0d1f17; --text-600: #3d6b52; --text-400: #7da68c;
+    --border: #d8ede4; --input-bg: #f5fbf8; --flower: #f4c430;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { min-height: 100%; }
+  body {
+    min-height: 100vh; min-height: 100svh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 32px 16px 150px;
+    font: 16px/1.5 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: var(--forest);
+    background: linear-gradient(to bottom, #ffffff 0%, #f3fbf7 50%, #c8ebd8 100%);
+    overflow-x: hidden;
+  }
+
+  .wrap { position: relative; z-index: 2; width: 100%; max-width: 380px; }
+
+  .card {
+    position: relative; background: rgba(255,255,255,.95); border: 1.5px solid var(--border);
+    border-radius: 24px; padding: 30px 28px 28px;
+    box-shadow: 0 8px 40px rgba(27,158,98,.12), 0 2px 8px rgba(0,0,0,.05);
+  }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .brand-mascot { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; margin-left: -10px;
+                  filter: drop-shadow(0 6px 12px rgba(27,158,98,.22)); pointer-events: none; }
+  .brand span { font-size: 30px; font-weight: 900; letter-spacing: -0.04em; color: var(--green); }
+  .tag { display: block; width: fit-content; margin: 8px auto 0; padding: 3px 10px; border-radius: 999px;
+         background: var(--green-pill); color: var(--green-dark); font-size: 13px; font-weight: 700; }
+  .lede { margin: 14px 0 22px; text-align: center; font-size: 14.5px; color: var(--text-600); }
+
+  .msg { display: none; margin-bottom: 14px; padding: 10px 12px; border-radius: 12px; font-size: 14px; font-weight: 500; }
+  .msg.show { display: block; }
+  .msg.error { background: #fdecec; color: #8a1f1f; border: 1.5px solid #f6caca; }
+  .msg.info { background: var(--green-pill); color: var(--green-dark); border: 1.5px solid var(--green-light); }
+
+  label { display: block; margin: 14px 0 6px; font-size: 14px; font-weight: 700; }
+  .field { position: relative; }
+  input {
+    width: 100%; padding: 12px 14px; font: inherit; font-size: 16px; color: var(--forest);
+    background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 12px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--green-light); }
+  .field input { padding-right: 64px; }
+  .toggle {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    padding: 6px 10px; border: 0; border-radius: 8px; background: transparent;
+    font: inherit; font-size: 13px; font-weight: 700; color: var(--green-dark); cursor: pointer;
+  }
+  .toggle:hover { background: var(--green-pill); }
+  .toggle:focus-visible, button[type=submit]:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+  button[type=submit] {
+    width: 100%; margin-top: 22px; padding: 14px; border: 0; border-radius: 12px; cursor: pointer;
+    font: inherit; font-size: 16px; font-weight: 700; color: #fff; background: var(--green);
+    box-shadow: 0 6px 18px rgba(27,158,98,.22); transition: background .15s, transform .15s;
+  }
+  button[type=submit]:hover { background: var(--green-dark); transform: translateY(-1px); }
+  button[type=submit]:disabled { opacity: .6; cursor: progress; transform: none; }
+
+  .foot { margin-top: 18px; text-align: center; font-size: 12.5px; color: var(--text-400); }
+  .foot a { color: var(--text-600); font-weight: 600; text-decoration: none; }
+  .foot a:hover { color: var(--green); }
+
+  /* Meadow along the bottom, like the site */
+  .meadow { position: fixed; left: 0; right: 0; bottom: 0; height: 140px; z-index: 0; pointer-events: none; }
+  .meadow svg { width: 100%; height: 100%; display: block; }
+
+  @media (max-width: 420px) {
+    .card { padding: 26px 20px 22px; }
+  }
+
+</style>
+</head>
+<body>
+<main class="wrap">
+  <form class="card" method="post" action="/dologin" id="login">
+    <div class="brand">
+      <video class="brand-mascot" src="/assets/mascot.webm" poster="/assets/logo.png" autoplay loop muted playsinline aria-hidden="true"></video>
+      <span>HiClippy</span>
+    </div>
+    <span class="tag">Monitoring</span>
+    <p class="lede">Live status of the website, API and DNS. Sign in to open the dashboard.</p>
+
+    <p class="msg error" id="failed" role="alert">That username or password is wrong. Check <code>.env.local</code> and try again.</p>
+    <p class="msg info" id="loggedout" role="status">You're signed out.</p>
+
+    <label for="u">Username</label>
+    <input id="u" name="httpd_username" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
+
+    <label for="p">Password</label>
+    <div class="field">
+      <input id="p" name="httpd_password" type="password" autocomplete="current-password" required>
+      <button type="button" class="toggle" id="toggle" aria-controls="p" aria-pressed="false">Show</button>
+    </div>
+
+    <button type="submit" id="submit">Sign in</button>
+    <p class="foot">Nagios Core 4.5.14, only reachable from this laptop.<br><a href="https://www.hiclippy.online" target="_blank" rel="noopener noreferrer">Open hiclippy.online</a></p>
+  </form>
+</main>
+
+<div class="meadow" aria-hidden="true"><svg id="grass" viewBox="0 0 1440 140" preserveAspectRatio="none"></svg></div>
+
+<script>
+  var q = new URLSearchParams(location.search);
+  if (q.has('failed')) document.getElementById('failed').classList.add('show');
+  if (q.has('loggedout')) document.getElementById('loggedout').classList.add('show');
+
+  var p = document.getElementById('p'), t = document.getElementById('toggle');
+  t.addEventListener('click', function () {
+    var show = p.type === 'password';
+    p.type = show ? 'text' : 'password';
+    t.textContent = show ? 'Hide' : 'Show';
+    t.setAttribute('aria-pressed', String(show));
+    p.focus();
+  });
+  document.getElementById('login').addEventListener('submit', function () {
+    var b = document.getElementById('submit'); b.disabled = true; b.textContent = 'Signing in…';
+  });
+
+  // Grass and flowers, generated like the site's meadow.
+  (function () {
+    var ns = 'http://www.w3.org/2000/svg', svg = document.getElementById('grass');
+    var hill = document.createElementNS(ns, 'path');
+    hill.setAttribute('d', 'M-50,140 L-50,70 Q360,30 720,62 Q1080,94 1490,58 L1490,140 Z');
+    hill.setAttribute('fill', '#d4eedd'); svg.appendChild(hill);
+    var colors = ['#8ecfa8', '#6fb58d', '#4ba371', '#3a8f5e', '#2a6e40'];
+    colors.forEach(function (c, layer) {
+      var d = '';
+      for (var i = 0; i < 70 + layer * 18; i++) {
+        var x = Math.random() * 1500 - 30, h = 18 + layer * 9 + Math.random() * (16 + layer * 4), s = (Math.random() - .5) * 10;
+        d += 'M' + x + ',141 Q' + (x + s) + ',' + (140 - h / 2) + ' ' + x + ',' + (140 - h) + ' ';
+      }
+      var path = document.createElementNS(ns, 'path');
+      path.setAttribute('d', d); path.setAttribute('stroke', c); path.setAttribute('stroke-width', 1.5 + layer * .5);
+      path.setAttribute('stroke-linecap', 'round'); path.setAttribute('fill', 'none'); path.setAttribute('opacity', .35 + layer * .12);
+      svg.appendChild(path);
+    });
+    ['#ff9e6d', '#ffcc6d', '#f4c430', '#6dccff'].forEach(function (c) {
+      for (var k = 0; k < 4; k++) {
+        var x = Math.random() * 1440, y = 92 + Math.random() * 22, dot = document.createElementNS(ns, 'circle');
+        dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', 4); dot.setAttribute('fill', c);
+        svg.appendChild(dot);
+      }
+    });
+  })();
+</script>
+</body>
+</html>
