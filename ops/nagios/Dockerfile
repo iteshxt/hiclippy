@@ -51,7 +51,8 @@ WORKDIR /usr/local/nagios
 
 # Web interface: CGI scripts and URL rewriting for the Nagios UI.
 RUN a2enmod cgi rewrite >/dev/null \
-    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+    && echo "RedirectMatch ^/$ /nagios/" > /etc/apache2/conf-enabled/nagios-root.conf
 
 # HiClippy config: hosts, services, commands, contacts, and the custom
 # round-trip plugin. The stock example (monitoring the container itself)
