@@ -65,28 +65,49 @@ Tokens needed (create them with the least access that works):
 
 ## Phase 1: import without changing anything
 
+The live resources are described in four modules, and `imports.tf` maps
+each one to its live counterpart. Check the match:
+
 ```bash
-terraform plan -generate-config-out=generated.tf
+terraform plan
 ```
 
-Terraform reads each live resource named in `imports.tf` and writes matching
-resource blocks to `generated.tf`. Nothing changes in production. Then:
+Expected today: **Plan: 11 to import, 0 to add, 0 to change, 0 to destroy.**
+Any "to change" or "to destroy" means the code and the live setup differ;
+fix the code, never the other way round in this phase.
 
-1. Review `generated.tf`. Drop computed or read-only attributes the plan
-   complains about.
-2. Move the resources into modules (`modules/vercel`, `render`, `atlas`,
-   `dns`) with variables and outputs.
-3. Run `terraform plan` again. Repeat until it says **No changes**.
+Recording the imports in state takes one `terraform apply`. With 0 to
+change it only writes the local state file; nothing in production
+changes. After that, `terraform plan` must say *No changes*: that is the
+end of Phase 1.
 
-Done when `terraform plan` reports *No changes. Your infrastructure matches
-the configuration.*
+### What Terraform does not manage
+
+- **Render environment variables** (`MONGO_URI` and the limits). Render
+  never returns their values, so Terraform can't compare them, and writing
+  them could wipe the database URI. They stay in the Render dashboard
+  (`ignore_changes = [env_vars]`), which also keeps every secret out of
+  Terraform.
+- Preview deployments, build logs, database contents and users.
+
+### Safety nets in the code
+
+- `prevent_destroy` on the Vercel project, Render service, Atlas project
+  and cluster, and every DNS record: a plan that would delete one fails.
+- DNS records are defined once in `main.tf` (`local.dns_records`) and used
+  by both the module and its imports, so the two can't drift apart.
 
 ## Files
 
-| File | Purpose |
+| Path | Purpose |
 | --- | --- |
-| `versions.tf` | Terraform and provider version pins |
-| `providers.tf` | Provider settings; credentials come from variables |
-| `variables.tf` | Credentials (sensitive) and the IDs of live resources |
-| `imports.tf` | What to adopt, and how to find each one |
-| `terraform.tfvars.example` | Template for your local, gitignored `terraform.tfvars` |
+| `main.tf` | Calls the four modules with today's real settings |
+| `imports.tf` | Maps each module resource to its live counterpart |
+| `outputs.tf` | Site, API and health URLs, DNS records, database state (for Nagios) |
+| `variables.tf` | Credentials (sensitive) and IDs of live resources |
+| `providers.tf` / `versions.tf` | Provider settings and version pins |
+| `modules/vercel` | Project, `www` and apex domains, `VITE_API_URL` |
+| `modules/render` | The API web service (env vars excluded) |
+| `modules/atlas` | Project, M0 cluster, IP access list |
+| `modules/dns` | Hostinger DNS records, one resource per record |
+| `terraform.tfvars.example` | Template for a local, gitignored `terraform.tfvars` |

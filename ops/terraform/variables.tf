@@ -99,3 +99,15 @@ variable "dns_zone" {
   type        = string
   default     = "hiclippy.online"
 }
+
+variable "api_url" {
+  description = "Base URL of the API, given to the frontend as VITE_API_URL."
+  type        = string
+  default     = "https://clippy-api.onrender.com"
+}
+
+variable "atlas_org_id" {
+  description = "Atlas organization that owns the project."
+  type        = string
+  default     = "66078bee261107672ae79780" # Itesh's Org
+}
