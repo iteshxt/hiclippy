@@ -905,3 +905,7 @@ html { scroll-padding-top: 16px; }
   .faq-q { font-size: 20px; }
   .step-visual { min-height: 150px; }
 }
+
+/* Mascot: two stacked copies of the video take turns (see Mascot in Site.jsx) */
+.mascot-loop { position: relative; width: 100%; height: 100%; }
+.mascot-loop .mascot-img--standby { position: absolute; inset: 0; }
