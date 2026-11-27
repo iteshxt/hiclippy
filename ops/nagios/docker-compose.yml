@@ -19,7 +19,9 @@ services:
     environment:
       TZ: Asia/Kolkata
       NAGIOS_ADMIN_USER: ${NAGIOS_ADMIN_USER:-nagiosadmin}
-      NAGIOS_ADMIN_PASSWORD: ${NAGIOS_ADMIN_PASSWORD:?set NAGIOS_ADMIN_PASSWORD in the repo-root .env.local}
+      # Read from the repo-root .env.local (gitignored); entrypoint.sh refuses
+      # to start without it.
+      NAGIOS_ADMIN_PASSWORD: ${NAGIOS_ADMIN_PASSWORD}
     volumes:
       # Check history, comments, downtime and logs survive restarts.
       - nagios_var:/usr/local/nagios/var
