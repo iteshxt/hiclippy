@@ -22,7 +22,7 @@ No account, no app to install, and everything deletes itself in minutes.
 ![MongoDB](https://img.shields.io/badge/MongoDB-13aa52?style=flat-square&logo=mongodb&logoColor=white)
 ![Terraform](https://img.shields.io/badge/Terraform-7b42bc?style=flat-square&logo=terraform&logoColor=white)
 ![Nagios](https://img.shields.io/badge/Monitored_by_Nagios-2f8f3a?style=flat-square)
-![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 
 <br>
 
@@ -191,4 +191,4 @@ Built by **Itesh Tomar**: [GitHub](https://github.com/iteshxt) · [Website](http
 
 ## License
 
-MIT License. Crafted with ❤️ for a better sharing experience.
+[MIT License](LICENSE). Crafted with ❤️ for a better sharing experience.
